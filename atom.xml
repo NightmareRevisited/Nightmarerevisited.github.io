@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2021-02-14T09:56:10.610Z</updated>
+  <updated>2021-02-14T10:12:58.883Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,36 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Водка</title>
+    <link href="http://example.com/2021/02/14/%D0%92%D0%BE%D0%B4%D0%BA%D0%B0/"/>
+    <id>http://example.com/2021/02/14/%D0%92%D0%BE%D0%B4%D0%BA%D0%B0/</id>
+    <published>2021-02-14T10:01:17.000Z</published>
+    <updated>2021-02-14T10:12:58.883Z</updated>
+    
+    <content type="html"><![CDATA[<p>我不喜欢喝伏特加，非常不喜欢，</p><p>但是又会强迫自己不断续满。</p><p>我喝下去的每一杯都是梦魇，</p><p>都会让我回到80层的噩梦中。</p><p>酒精会麻醉大脑，</p><p>但是每一团梦魇都会让我更加清醒。</p><p>我希望通过给予取回我内心的平静，</p><p>但她的毫不在意让我不忍把她也拖进泥沼中。</p><p>我只能尽我所能提升自己，</p><p>在赎罪之日到来时为她献上我的一切。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;我不喜欢喝伏特加，非常不喜欢，&lt;/p&gt;
+&lt;p&gt;但是又会强迫自己不断续满。&lt;/p&gt;
+&lt;p&gt;我喝下去的每一杯都是梦魇，&lt;/p&gt;
+&lt;p&gt;都会让我回到80层的噩梦中。&lt;/p&gt;
+&lt;p&gt;酒精会麻醉大脑，&lt;/p&gt;
+&lt;p&gt;但是每一团梦魇都会让我更加清醒。&lt;/p&gt;
+&lt;p&gt;我希望通过给予取回我</summary>
+      
+    
+    
+    
+    <category term="随笔" scheme="http://example.com/categories/%E9%9A%8F%E7%AC%94/"/>
+    
+    
+    <category term="随笔" scheme="http://example.com/tags/%E9%9A%8F%E7%AC%94/"/>
+    
+  </entry>
   
   <entry>
     <title>回到起点</title>
