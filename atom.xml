@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>NightmareRevisited</title>
+  
+  
+  <link href="http://example.com/atom.xml" rel="self"/>
+  
+  <link href="http://example.com/"/>
+  <updated>2021-02-14T09:56:10.610Z</updated>
+  <id>http://example.com/</id>
+  
+  <author>
+    <name>NightmareRevisited</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>回到起点</title>
+    <link href="http://example.com/2021/02/14/%E5%9B%9E%E5%88%B0%E8%B5%B7%E7%82%B9/"/>
+    <id>http://example.com/2021/02/14/%E5%9B%9E%E5%88%B0%E8%B5%B7%E7%82%B9/</id>
+    <published>2021-02-14T09:32:55.000Z</published>
+    <updated>2021-02-14T09:56:10.610Z</updated>
+    
+    <content type="html"><![CDATA[<p>​        如果不算高中计算机课上所学的VB（实际上也真的毫无卵用），我的启蒙语言就是大学C语言课上学的c++了。那时从高中毕业心还没收回来加上本科志愿问题罹患了严重的抑郁症，没怎么深入学习，只是把红皮书上的东西看完+随便刷了点noj的算法题+躺着过了期末考试，c++的学习就暂时告一段落了。</p><p>​        今年春节前忙完所有积压的活之后萌生想把技术应用到生活中的想法，遂买了个树莓派加一些基础传感器开始研究。最初在调试的是手柄信号的监听，查阅资料发现现存大部分资料都是从一篇写python pygame库joystick的基础用法的，并没有高级教程，其次我也忍受不了在4核8g的机器上跑python这种低效的代码，遂改用golang开始尝试。golang生态不是很完善，别说手柄相关的库，就连蓝牙信号监听甚至都没有需要自举开发；实在没辙只能开始尝试c/c++的mmlib相关库，然后问题来了：个人c++只有基础入门水平，mmlib相关库的代码看不懂。所以借着今年春节留京有大把空余时间的机会，回到起点，花点时间，不敢妄言精通c++，但至少学习到一个能够找到一份c++高工工作程度的水平吧。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;​        如果不算高中计算机课上所学的VB（实际上也真的毫无卵用），我的启蒙语言就是大学C语言课上学的c++了。那时从高中毕业心还没收回来加上本科志愿问题罹患了严重的抑郁症，没怎么深入学习，只是把红皮书上的东西看完+随便刷了点noj的算法题+躺着过了期末考试，c++</summary>
+      
+    
+    
+    
+    <category term="C++" scheme="http://example.com/categories/C/"/>
+    
+    
+    <category term="随笔,C++" scheme="http://example.com/tags/%E9%9A%8F%E7%AC%94-C/"/>
+    
+  </entry>
+  
+</feed>
