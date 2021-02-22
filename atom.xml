@@ -178,9 +178,9 @@
     <category term="C++" scheme="http://example.com/categories/C/"/>
     
     
-    <category term="随笔" scheme="http://example.com/tags/%E9%9A%8F%E7%AC%94/"/>
-    
     <category term="C++" scheme="http://example.com/tags/C/"/>
+    
+    <category term="随笔" scheme="http://example.com/tags/%E9%9A%8F%E7%AC%94/"/>
     
   </entry>
   
