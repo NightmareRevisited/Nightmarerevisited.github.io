@@ -365,13 +365,234 @@ NightmareRevisited
 <li>kernal: Linux 6.1.23</li>
 </ul>
 </blockquote>
-<h3 id="php-smarty"><a href="#php-smarty" class="headerlink" title="php smarty"></a>php smarty</h3><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">public function testRender()</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    $pageData = <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">    $pageData = json_decode($pageData<span class="punctuation">,</span> <span class="literal"><span class="keyword">true</span></span>);</span><br><span class="line"></span><br><span class="line">    $pageData<span class="punctuation">[</span><span class="string">&quot;isSeo&quot;</span><span class="punctuation">]</span> = <span class="number">1</span>;</span><br><span class="line">    $pageData<span class="punctuation">[</span><span class="string">&quot;articleList&quot;</span><span class="punctuation">]</span> = <span class="punctuation">[</span><span class="punctuation">]</span>;</span><br><span class="line"></span><br><span class="line">    $s = microtime(<span class="literal"><span class="keyword">true</span></span>);</span><br><span class="line"></span><br><span class="line">    $this-&gt;assignTpl($pageData);</span><br><span class="line">    for ($i = <span class="number">0</span>; $i &lt; <span class="number">100</span>; $i++) <span class="punctuation">&#123;</span></span><br><span class="line">        $this-&gt;getView()-&gt;render(&#x27;cserviceseo/index.tpl&#x27;);</span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">    $e = microtime(<span class="literal"><span class="keyword">true</span></span>);</span><br><span class="line"></span><br><span class="line">    echo $e-$s;</span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="php-smarty"><a href="#php-smarty" class="headerlink" title="php smarty"></a>php smarty</h3><pre class="language-json" data-language="json"><code class="language-json">public function testRender()
+&#123;
+    $pageData &#x3D; &quot;&quot;;
+
+    $pageData &#x3D; json_decode($pageData, true);
+
+    $pageData[&quot;isSeo&quot;] &#x3D; 1;
+    $pageData[&quot;articleList&quot;] &#x3D; [];
+
+    $s &#x3D; microtime(true);
+
+    $this-&gt;assignTpl($pageData);
+    for ($i &#x3D; 0; $i &lt; 100; $i++) &#123;
+        $this-&gt;getView()-&gt;render(&#39;cserviceseo&#x2F;index.tpl&#39;);
+    &#125;
+    $e &#x3D; microtime(true);
+
+    echo $e-$s;
+&#125;</code></pre>
 
 <p>平均一次数据注入花费0.2ms</p>
-<h3 id="go-template"><a href="#go-template" class="headerlink" title="go template"></a>go template</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;encoding/json&quot;</span></span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line"></span><br><span class="line">	<span class="string">&quot;time&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> pageDataString <span class="type">string</span> = <span class="string">&quot;&quot;</span></span><br><span class="line">	<span class="keyword">var</span> pageData <span class="keyword">map</span>[<span class="type">string</span>]any</span><br><span class="line">	err := json.Unmarshal([]<span class="type">byte</span>(pageDataString), &amp;pageData)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="comment">//demo</span></span><br><span class="line">	&#125;</span><br><span class="line">	pageData[<span class="string">&quot;isSeo&quot;</span>] = <span class="number">1</span></span><br><span class="line">	pageData[<span class="string">&quot;articleList&quot;</span>] = []<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>&#123;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	data := <span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>&#123;&#125;&#123;</span><br><span class="line">		<span class="string">&quot;pageData&quot;</span>:    pageData,</span><br><span class="line">		<span class="string">&quot;loginStatus&quot;</span>: <span class="literal">nil</span>,</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	s := time.Now().UnixMilli()</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">1000</span>; i++ &#123;</span><br><span class="line">		_, err := tpl.LoadTpl(<span class="string">&quot;cserviceseo&quot;</span>, data)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="built_in">panic</span>(err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	e := time.Now().UnixMilli()</span><br><span class="line"></span><br><span class="line">	fmt.Printf(<span class="string">&quot;cost time : %d ms\n&quot;</span>, e-s)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="go-template"><a href="#go-template" class="headerlink" title="go template"></a>go template</h3><pre class="language-go" data-language="go"><code class="language-go">package main
+
+import (
+	&quot;encoding&#x2F;json&quot;
+	&quot;fmt&quot;
+
+	&quot;time&quot;
+)
+
+func main() &#123;
+	var pageDataString string &#x3D; &quot;&quot;
+	var pageData map[string]any
+	err :&#x3D; json.Unmarshal([]byte(pageDataString), &amp;pageData)
+	if err !&#x3D; nil &#123;
+		&#x2F;&#x2F;demo
+	&#125;
+	pageData[&quot;isSeo&quot;] &#x3D; 1
+	pageData[&quot;articleList&quot;] &#x3D; []map[string]string&#123;
+	&#125;
+
+	data :&#x3D; map[string]interface&#123;&#125;&#123;
+		&quot;pageData&quot;:    pageData,
+		&quot;loginStatus&quot;: nil,
+	&#125;
+
+	s :&#x3D; time.Now().UnixMilli()
+	for i :&#x3D; 0; i &lt; 1000; i++ &#123;
+		_, err :&#x3D; tpl.LoadTpl(&quot;cserviceseo&quot;, data)
+		if err !&#x3D; nil &#123;
+			panic(err)
+		&#125;
+	&#125;
+	e :&#x3D; time.Now().UnixMilli()
+
+	fmt.Printf(&quot;cost time : %d ms\n&quot;, e-s)
+&#125;</code></pre>
 
 <p>平均一次数据注入花费0.6ms</p>
-<h2 id="数据兼容"><a href="#数据兼容" class="headerlink" title="数据兼容"></a>数据兼容</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;bytes&quot;</span></span><br><span class="line">	<span class="string">&quot;io&quot;</span></span><br><span class="line">	<span class="string">&quot;io/fs&quot;</span></span><br><span class="line">	<span class="string">&quot;os&quot;</span></span><br><span class="line">	<span class="string">&quot;path/filepath&quot;</span></span><br><span class="line">	<span class="string">&quot;regexp&quot;</span></span><br><span class="line">	<span class="string">&quot;strings&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">	smartyTplPath = <span class="string">&quot;smarty模板路径&quot;</span></span><br><span class="line">	tempTplPath   = <span class="string">&quot;中转路径&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="comment">//php原始smarty模板转中间模板</span></span><br><span class="line">	smarty2Temp()</span><br><span class="line"></span><br><span class="line">	<span class="comment">//中间模板编译go template</span></span><br><span class="line">	temp2GoTemplate()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// temp2GoTemplate</span></span><br><span class="line"><span class="comment">// @Description: 中间模板转smarty</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">temp2GoTemplate</span><span class="params">()</span></span> &#123;</span><br><span class="line">	conf := &amp;smarty.Config&#123;</span><br><span class="line">		LeftDelimiter:  <span class="string">&quot;&lt;%&quot;</span>,</span><br><span class="line">		RightDelimiter: <span class="string">&quot;%&gt;&quot;</span>,</span><br><span class="line">		TemplateDir:    tempTplPath,</span><br><span class="line">		CompileDir:     <span class="string">&quot;webroot/aiqifu/views&quot;</span>,</span><br><span class="line">		Ignores:        []<span class="type">string</span>&#123;<span class="string">&quot;inc/*&quot;</span>&#125;,</span><br><span class="line">		UcaseField:     <span class="literal">false</span>,</span><br><span class="line">		CompileOnline:  <span class="literal">false</span>,</span><br><span class="line">		Glob:           <span class="literal">false</span>,</span><br><span class="line">		AutoRoot:       <span class="literal">false</span>,</span><br><span class="line">		Mode:           smartyTypes.Smarty,</span><br><span class="line">	&#125;</span><br><span class="line">	fInst, _ := smarty.New(conf)</span><br><span class="line">	_, err := fInst.CompileAll()</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// smarty2Temp</span></span><br><span class="line"><span class="comment">// @Description: 原始smarty模板转中间模板</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">smarty2Temp</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> tplPathList []<span class="type">string</span></span><br><span class="line">	err := filepath.Walk(smartyTplPath, <span class="function"><span class="keyword">func</span><span class="params">(path <span class="type">string</span>, info fs.FileInfo, err <span class="type">error</span>)</span></span> <span class="type">error</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> info.IsDir() || !tools.StringEndWith(path, <span class="string">&quot;.tpl&quot;</span>) &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		path = path[<span class="built_in">len</span>(smartyTplPath)+<span class="number">1</span>:]</span><br><span class="line">		tplPathList = <span class="built_in">append</span>(tplPathList, path)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	smartyTplBlock := regexp.MustCompile(<span class="string">&quot;&lt;%.*?%&gt;&quot;</span>)</span><br><span class="line"></span><br><span class="line">	variableComp := regexp.MustCompile(<span class="string">`\$[\w.]+`</span>)</span><br><span class="line">	forLoopStartComp := regexp.MustCompile(<span class="string">`&lt;% *foreach *\$[\w.]+ *as *(\$[\w.]+) *(=&gt;)? *(\$[\w.]+)?.*%&gt;`</span>)</span><br><span class="line">	forLoopEndComp := regexp.MustCompile(<span class="string">`&lt;% */ *foreach *%&gt;`</span>)</span><br><span class="line">	assignmentComp := regexp.MustCompile(<span class="string">`&lt;% *(\$[\w.]+)* *=[^=].*%&gt;`</span>)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, tplPath := <span class="keyword">range</span> tplPathList &#123;</span><br><span class="line">		smartyTplFile := filepath.Join(smartyTplPath, tplPath)</span><br><span class="line">		tempTplFile := filepath.Join(tempTplPath, tplPath)</span><br><span class="line">		smartyFd, err := os.OpenFile(smartyTplFile, os.O_RDONLY, <span class="number">0666</span>)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="built_in">panic</span>(err)</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		fileContent := &amp;bytes.Buffer&#123;&#125;</span><br><span class="line">		_, err = io.Copy(fileContent, smartyFd)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="built_in">panic</span>(err)</span><br><span class="line">		&#125;</span><br><span class="line">		fileString := fileContent.String()</span><br><span class="line"></span><br><span class="line">		<span class="keyword">var</span> localVariableStack = [][]<span class="type">string</span>&#123;</span><br><span class="line">			&#123;<span class="string">&quot;$smarty&quot;</span>&#125;, <span class="comment">//smarty保留变量</span></span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		smartyBlock := smartyTplBlock.FindAllString(fileString, <span class="number">-1</span>)</span><br><span class="line">		<span class="keyword">for</span> _, block := <span class="keyword">range</span> smartyBlock &#123;</span><br><span class="line">			<span class="comment">//判断是否为赋值语句</span></span><br><span class="line">			assignmentMatch := assignmentComp.FindStringSubmatch(block)</span><br><span class="line">			<span class="keyword">if</span> <span class="built_in">len</span>(assignmentMatch) &gt; <span class="number">0</span> &#123;</span><br><span class="line">				localVariableStack[<span class="built_in">len</span>(localVariableStack)<span class="number">-1</span>] = <span class="built_in">append</span>(localVariableStack[<span class="built_in">len</span>(localVariableStack)<span class="number">-1</span>], assignmentMatch[<span class="number">1</span>])</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="comment">//判断是否为foreach</span></span><br><span class="line">			forLoopStartMatch := forLoopStartComp.FindStringSubmatch(block)</span><br><span class="line">			<span class="keyword">if</span> <span class="built_in">len</span>(forLoopStartMatch) &gt; <span class="number">0</span> &#123;</span><br><span class="line">				localVariableStack = <span class="built_in">append</span>(localVariableStack, []<span class="type">string</span>&#123;&#125;)</span><br><span class="line">				localVariableStack[<span class="built_in">len</span>(localVariableStack)<span class="number">-1</span>] = <span class="built_in">append</span>(localVariableStack[<span class="built_in">len</span>(localVariableStack)<span class="number">-1</span>], forLoopStartMatch[<span class="number">1</span>])</span><br><span class="line">				<span class="keyword">if</span> forLoopStartMatch[<span class="number">3</span>] != <span class="string">&quot;&quot;</span> &#123;</span><br><span class="line">					localVariableStack[<span class="built_in">len</span>(localVariableStack)<span class="number">-1</span>] = <span class="built_in">append</span>(localVariableStack[<span class="built_in">len</span>(localVariableStack)<span class="number">-1</span>], forLoopStartMatch[<span class="number">3</span>])</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="comment">//判断是否结束foreach</span></span><br><span class="line">			forLoopEndMatch := forLoopEndComp.FindStringSubmatch(block)</span><br><span class="line">			<span class="keyword">if</span> <span class="built_in">len</span>(forLoopEndMatch) &gt; <span class="number">0</span> &#123;</span><br><span class="line">				localVariableStack = localVariableStack[:<span class="built_in">len</span>(localVariableStack)<span class="number">-1</span>]</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="keyword">var</span> newBlock = strings.ReplaceAll(block, <span class="string">&quot;&#x27;&quot;</span>, <span class="string">&quot;\&quot;&quot;</span>)</span><br><span class="line">			newBlock = strings.ReplaceAll(newBlock, <span class="string">&quot;$smarty.now&quot;</span>, <span class="string">&quot;\&quot;\&quot;|now&quot;</span>)</span><br><span class="line"></span><br><span class="line">			variableList := variableComp.FindAllString(block, <span class="number">-1</span>)</span><br><span class="line">			<span class="keyword">for</span> _, variable := <span class="keyword">range</span> variableList &#123;</span><br><span class="line">				<span class="keyword">if</span> isLocalVariable(localVariableStack, variable) &#123;</span><br><span class="line">					<span class="keyword">continue</span></span><br><span class="line">				&#125;</span><br><span class="line"></span><br><span class="line">				newBlock = strings.ReplaceAll(newBlock, variable, variable[:<span class="number">1</span>]+<span class="string">&quot;ROOT.&quot;</span>+variable[<span class="number">1</span>:])</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="keyword">if</span> newBlock != block &#123;</span><br><span class="line">				fileString = strings.ReplaceAll(fileString, block, newBlock)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="comment">//摘除所有strip 和 json_encode</span></span><br><span class="line">		rule1 := regexp.MustCompile(<span class="string">`&lt;%/?strip%&gt;`</span>)</span><br><span class="line">		rule2 := regexp.MustCompile(<span class="string">`\| *json_encode *`</span>)</span><br><span class="line"></span><br><span class="line">		fileString = rule1.ReplaceAllString(fileString, <span class="string">&quot;&quot;</span>)</span><br><span class="line">		fileString = rule2.ReplaceAllString(fileString, <span class="string">&quot;&quot;</span>)</span><br><span class="line"></span><br><span class="line">		tempFd, err := util.CreateFile(tempTplFile)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="built_in">panic</span>(err)</span><br><span class="line">		&#125;</span><br><span class="line">		_, err = tempFd.WriteString(fileString)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="built_in">panic</span>(err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// isLocalVariable</span></span><br><span class="line"><span class="comment">// @Description: 在作用域中逐层查找变量</span></span><br><span class="line"><span class="comment">// @param variableStack 作用域（函数栈）</span></span><br><span class="line"><span class="comment">// @param variable</span></span><br><span class="line"><span class="comment">// @return bool</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">isLocalVariable</span><span class="params">(variableStack [][]<span class="type">string</span>, variable <span class="type">string</span>)</span></span> <span class="type">bool</span> &#123;</span><br><span class="line">	<span class="keyword">for</span> _, floor := <span class="keyword">range</span> variableStack &#123;</span><br><span class="line">		<span class="keyword">for</span> _, variablePrefix := <span class="keyword">range</span> floor &#123;</span><br><span class="line">			<span class="keyword">if</span> <span class="built_in">len</span>(variablePrefix) &gt; <span class="built_in">len</span>(variable) &#123;</span><br><span class="line">				<span class="keyword">continue</span></span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="keyword">if</span> variable[:<span class="built_in">len</span>(variablePrefix)] == variablePrefix &#123;</span><br><span class="line">				<span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="数据兼容"><a href="#数据兼容" class="headerlink" title="数据兼容"></a>数据兼容</h2><pre class="language-go" data-language="go"><code class="language-go">package main
+
+import (
+	&quot;bytes&quot;
+	&quot;io&quot;
+	&quot;io&#x2F;fs&quot;
+	&quot;os&quot;
+	&quot;path&#x2F;filepath&quot;
+	&quot;regexp&quot;
+	&quot;strings&quot;
+)
+
+var (
+	smartyTplPath &#x3D; &quot;smarty模板路径&quot;
+	tempTplPath   &#x3D; &quot;中转路径&quot;
+)
+
+func main() &#123;
+	&#x2F;&#x2F;php原始smarty模板转中间模板
+	smarty2Temp()
+
+	&#x2F;&#x2F;中间模板编译go template
+	temp2GoTemplate()
+&#125;
+
+&#x2F;&#x2F; temp2GoTemplate
+&#x2F;&#x2F; @Description: 中间模板转smarty
+func temp2GoTemplate() &#123;
+	conf :&#x3D; &amp;smarty.Config&#123;
+		LeftDelimiter:  &quot;&lt;%&quot;,
+		RightDelimiter: &quot;%&gt;&quot;,
+		TemplateDir:    tempTplPath,
+		CompileDir:     &quot;webroot&#x2F;aiqifu&#x2F;views&quot;,
+		Ignores:        []string&#123;&quot;inc&#x2F;*&quot;&#125;,
+		UcaseField:     false,
+		CompileOnline:  false,
+		Glob:           false,
+		AutoRoot:       false,
+		Mode:           smartyTypes.Smarty,
+	&#125;
+	fInst, _ :&#x3D; smarty.New(conf)
+	_, err :&#x3D; fInst.CompileAll()
+	if err !&#x3D; nil &#123;
+		panic(err)
+	&#125;
+&#125;
+
+&#x2F;&#x2F; smarty2Temp
+&#x2F;&#x2F; @Description: 原始smarty模板转中间模板
+func smarty2Temp() &#123;
+	var tplPathList []string
+	err :&#x3D; filepath.Walk(smartyTplPath, func(path string, info fs.FileInfo, err error) error &#123;
+		if info.IsDir() || !tools.StringEndWith(path, &quot;.tpl&quot;) &#123;
+			return nil
+		&#125;
+
+		path &#x3D; path[len(smartyTplPath)+1:]
+		tplPathList &#x3D; append(tplPathList, path)
+		return nil
+	&#125;)
+	if err !&#x3D; nil &#123;
+		panic(err)
+	&#125;
+
+	smartyTplBlock :&#x3D; regexp.MustCompile(&quot;&lt;%.*?%&gt;&quot;)
+
+	variableComp :&#x3D; regexp.MustCompile(&#96;\$[\w.]+&#96;)
+	forLoopStartComp :&#x3D; regexp.MustCompile(&#96;&lt;% *foreach *\$[\w.]+ *as *(\$[\w.]+) *(&#x3D;&gt;)? *(\$[\w.]+)?.*%&gt;&#96;)
+	forLoopEndComp :&#x3D; regexp.MustCompile(&#96;&lt;% *&#x2F; *foreach *%&gt;&#96;)
+	assignmentComp :&#x3D; regexp.MustCompile(&#96;&lt;% *(\$[\w.]+)* *&#x3D;[^&#x3D;].*%&gt;&#96;)
+
+	for _, tplPath :&#x3D; range tplPathList &#123;
+		smartyTplFile :&#x3D; filepath.Join(smartyTplPath, tplPath)
+		tempTplFile :&#x3D; filepath.Join(tempTplPath, tplPath)
+		smartyFd, err :&#x3D; os.OpenFile(smartyTplFile, os.O_RDONLY, 0666)
+		if err !&#x3D; nil &#123;
+			panic(err)
+		&#125;
+
+		fileContent :&#x3D; &amp;bytes.Buffer&#123;&#125;
+		_, err &#x3D; io.Copy(fileContent, smartyFd)
+		if err !&#x3D; nil &#123;
+			panic(err)
+		&#125;
+		fileString :&#x3D; fileContent.String()
+
+		var localVariableStack &#x3D; [][]string&#123;
+			&#123;&quot;$smarty&quot;&#125;, &#x2F;&#x2F;smarty保留变量
+		&#125;
+
+		smartyBlock :&#x3D; smartyTplBlock.FindAllString(fileString, -1)
+		for _, block :&#x3D; range smartyBlock &#123;
+			&#x2F;&#x2F;判断是否为赋值语句
+			assignmentMatch :&#x3D; assignmentComp.FindStringSubmatch(block)
+			if len(assignmentMatch) &gt; 0 &#123;
+				localVariableStack[len(localVariableStack)-1] &#x3D; append(localVariableStack[len(localVariableStack)-1], assignmentMatch[1])
+			&#125;
+
+			&#x2F;&#x2F;判断是否为foreach
+			forLoopStartMatch :&#x3D; forLoopStartComp.FindStringSubmatch(block)
+			if len(forLoopStartMatch) &gt; 0 &#123;
+				localVariableStack &#x3D; append(localVariableStack, []string&#123;&#125;)
+				localVariableStack[len(localVariableStack)-1] &#x3D; append(localVariableStack[len(localVariableStack)-1], forLoopStartMatch[1])
+				if forLoopStartMatch[3] !&#x3D; &quot;&quot; &#123;
+					localVariableStack[len(localVariableStack)-1] &#x3D; append(localVariableStack[len(localVariableStack)-1], forLoopStartMatch[3])
+				&#125;
+			&#125;
+
+			&#x2F;&#x2F;判断是否结束foreach
+			forLoopEndMatch :&#x3D; forLoopEndComp.FindStringSubmatch(block)
+			if len(forLoopEndMatch) &gt; 0 &#123;
+				localVariableStack &#x3D; localVariableStack[:len(localVariableStack)-1]
+			&#125;
+
+			var newBlock &#x3D; strings.ReplaceAll(block, &quot;&#39;&quot;, &quot;\&quot;&quot;)
+			newBlock &#x3D; strings.ReplaceAll(newBlock, &quot;$smarty.now&quot;, &quot;\&quot;\&quot;|now&quot;)
+
+			variableList :&#x3D; variableComp.FindAllString(block, -1)
+			for _, variable :&#x3D; range variableList &#123;
+				if isLocalVariable(localVariableStack, variable) &#123;
+					continue
+				&#125;
+
+				newBlock &#x3D; strings.ReplaceAll(newBlock, variable, variable[:1]+&quot;ROOT.&quot;+variable[1:])
+			&#125;
+
+			if newBlock !&#x3D; block &#123;
+				fileString &#x3D; strings.ReplaceAll(fileString, block, newBlock)
+			&#125;
+		&#125;
+
+		&#x2F;&#x2F;摘除所有strip 和 json_encode
+		rule1 :&#x3D; regexp.MustCompile(&#96;&lt;%&#x2F;?strip%&gt;&#96;)
+		rule2 :&#x3D; regexp.MustCompile(&#96;\| *json_encode *&#96;)
+
+		fileString &#x3D; rule1.ReplaceAllString(fileString, &quot;&quot;)
+		fileString &#x3D; rule2.ReplaceAllString(fileString, &quot;&quot;)
+
+		tempFd, err :&#x3D; util.CreateFile(tempTplFile)
+		if err !&#x3D; nil &#123;
+			panic(err)
+		&#125;
+		_, err &#x3D; tempFd.WriteString(fileString)
+		if err !&#x3D; nil &#123;
+			panic(err)
+		&#125;
+	&#125;
+&#125;
+
+&#x2F;&#x2F; isLocalVariable
+&#x2F;&#x2F; @Description: 在作用域中逐层查找变量
+&#x2F;&#x2F; @param variableStack 作用域（函数栈）
+&#x2F;&#x2F; @param variable
+&#x2F;&#x2F; @return bool
+func isLocalVariable(variableStack [][]string, variable string) bool &#123;
+	for _, floor :&#x3D; range variableStack &#123;
+		for _, variablePrefix :&#x3D; range floor &#123;
+			if len(variablePrefix) &gt; len(variable) &#123;
+				continue
+			&#125;
+
+			if variable[:len(variablePrefix)] &#x3D;&#x3D; variablePrefix &#123;
+				return true
+			&#125;
+		&#125;
+	&#125;
+
+	return false
+&#125;</code></pre>
 
 
                 

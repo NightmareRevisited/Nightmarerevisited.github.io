@@ -308,7 +308,9 @@ NightmareRevisited
 <p>添加头文件检索目录</p>
 </blockquote>
 <p>相当于g++选项中的-I参数的作用，也相当于环境变量中增加路径到CPLUS_INCLUDE_PATH变量的作用（这里特指c++。c和<a target="_blank" rel="noopener" href="http://lib.csdn.net/base/javaee"><strong>Java</strong></a>中用法类似）。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">include_directories(</span><br><span class="line">        SYSTEM <span class="string">&quot;/usr/include&quot;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<pre class="language-c" data-language="c"><code class="language-c">include_directories(
+        SYSTEM &quot;&#x2F;usr&#x2F;include&quot;
+)</code></pre>
 
 <h2 id="LINK-DIRECTORIES"><a href="#LINK-DIRECTORIES" class="headerlink" title="LINK_DIRECTORIES"></a>LINK_DIRECTORIES</h2><blockquote>
 <p>添加链接库检索路径</p>
@@ -316,17 +318,27 @@ NightmareRevisited
 <p>语法：</p>
 <p>link_directories(directory1 directory2 …)</p>
 <p>相当于g++命令的-L选项的作用，也相当于环境变量中增加LD_LIBRARY_PATH的路径的作用。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LINK_DIRECTORIES(<span class="string">&quot;/usr/lib64&quot;</span>)</span><br></pre></td></tr></table></figure>
+<pre class="language-c" data-language="c"><code class="language-c">LINK_DIRECTORIES(&quot;&#x2F;usr&#x2F;lib64&quot;)</code></pre>
 
 <h2 id="LINK-LIBRARIES"><a href="#LINK-LIBRARIES" class="headerlink" title="LINK_LIBRARIES"></a>LINK_LIBRARIES</h2><blockquote>
 <p>添加链接库文件</p>
 </blockquote>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">LINK_LIBRARIES(<span class="string">&quot;/opt/MATLAB/R2012a/bin/glnxa64/libeng.so&quot;</span>)</span><br><span class="line">LINK_LIBRARIES(eng)</span><br><span class="line">LINK_LIBRARIES(<span class="string">&quot;/opt/MATLAB/R2012a/bin/glnxa64/libmx.so&quot;</span>)</span><br><span class="line"> </span><br><span class="line"><span class="comment">//也可以写在一起</span></span><br><span class="line">LINK_LIBRARIES(</span><br><span class="line">    <span class="string">&quot;/opt/MATLAB/R2012a/bin/glnxa64/libeng.so&quot;</span>　</span><br><span class="line">    <span class="string">&quot;/opt/MATLAB/R2012a/bin/glnxa64/libmx.so&quot;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<pre class="language-c" data-language="c"><code class="language-c">LINK_LIBRARIES(&quot;&#x2F;opt&#x2F;MATLAB&#x2F;R2012a&#x2F;bin&#x2F;glnxa64&#x2F;libeng.so&quot;)
+LINK_LIBRARIES(eng)
+LINK_LIBRARIES(&quot;&#x2F;opt&#x2F;MATLAB&#x2F;R2012a&#x2F;bin&#x2F;glnxa64&#x2F;libmx.so&quot;)
+ 
+&#x2F;&#x2F;也可以写在一起
+LINK_LIBRARIES(
+    &quot;&#x2F;opt&#x2F;MATLAB&#x2F;R2012a&#x2F;bin&#x2F;glnxa64&#x2F;libeng.so&quot;　
+    &quot;&#x2F;opt&#x2F;MATLAB&#x2F;R2012a&#x2F;bin&#x2F;glnxa64&#x2F;libmx.so&quot;
+)</code></pre>
 
 <h2 id="TARGET-LINK-LIBRARIES"><a href="#TARGET-LINK-LIBRARIES" class="headerlink" title="TARGET_LINK_LIBRARIES"></a><strong>TARGET_LINK_LIBRARIES</strong></h2><blockquote>
 <p>为编译产出指定链接库</p>
 </blockquote>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">TARGET_LINK_LIBRARIES(myProject hello)</span><br><span class="line">TARGET_LINK_LIBRARIES(myProject libhello.a)</span><br><span class="line">TARGET_LINK_LIBRARIES(myProject libhello.so)</span><br></pre></td></tr></table></figure>
+<pre class="language-c" data-language="c"><code class="language-c">TARGET_LINK_LIBRARIES(myProject hello)
+TARGET_LINK_LIBRARIES(myProject libhello.a)
+TARGET_LINK_LIBRARIES(myProject libhello.so)</code></pre>
                 
             </div>
             <hr/>

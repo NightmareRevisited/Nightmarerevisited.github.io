@@ -304,7 +304,7 @@ Version
 </tr>
 </tbody></table>
 <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在2009年的一个会议中，著名的“快速排序”算法的发明者，Tony Hoare向全世界道歉，忏悔他曾经发明了“空指针”这个玩意。他是这么说的：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">我把它叫做我的“十亿美元错误”，就是在1965年发明了空引用… 我无法抵挡放进一个空引用的诱惑，仅仅是因为实现起来非常容易。</span><br></pre></td></tr></table></figure>
+<pre class="language-plain" data-language="plain"><code class="language-plain">我把它叫做我的“十亿美元错误”，就是在1965年发明了空引用… 我无法抵挡放进一个空引用的诱惑，仅仅是因为实现起来非常容易。</code></pre>
 
 <p>这几十年来程序员在和因Null造成的空指针异常的斗争中，犯的错误以及解决错误所耗费的时间精力，应该远远不止十亿美元。</p>
 <h2 id="什么是RUST"><a href="#什么是RUST" class="headerlink" title="什么是RUST"></a>什么是RUST</h2><p>Rust 是由 Mozilla 开发的<a target="_blank" rel="noopener" href="https://www.zhihu.com/search?q=%E5%A4%9A%E8%8C%83%E5%BC%8F%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra=%7B%22sourceType%22:%22answer%22,%22sourceId%22:2119131573%7D">多范式编程语言</a>，专注于性能和安全性。Rust 以其先进的<strong>安全并发能力</strong>而闻名 。Rust 的语法类似于 C++，但它提供了更快的速度和内存安全性，没有空指针，没有gc。</p>
@@ -343,11 +343,24 @@ Version
 </ol>
 <h2 id="FEATURE简介"><a href="#FEATURE简介" class="headerlink" title="FEATURE简介"></a>FEATURE简介</h2><h3 id="内存与分配"><a href="#内存与分配" class="headerlink" title="内存与分配"></a>内存与分配</h3><p>在有 <strong>垃圾回收</strong>（<em>garbage collector</em>，<em>GC</em>）的语言中， GC 记录并清除不再使用的内存，而我们并不需要关心它。没有 GC 的话，识别出不再使用的内存并调用代码显式释放就是我们的责任了，跟请求内存的时候一样。从历史的角度上说正确处理内存回收曾经是一个困难的编程问题。如果忘记回收了会浪费内存。如果过早回收了，将会出现无效变量。如果重复回收，这也是个 bug。我们需要精确地为一个 <code>allocate</code> 配对一个 <code>free</code></p>
 <p>Rust 采取了一个不同的策略：内存在拥有它的变量离开作用域后就被自动释放。例如：</p>
-<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">foo</span>() &#123;</span><br><span class="line">	&#123;</span><br><span class="line">        <span class="keyword">let</span> <span class="variable">s</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>); <span class="comment">// 从此处起，s 开始有效</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 使用 s</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//此时s已被释放，不可用</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre class="language-rust" data-language="rust"><code class="language-rust">fn foo() &#123;
+	&#123;
+        let s &#x3D; String::from(&quot;hello&quot;); &#x2F;&#x2F; 从此处起，s 开始有效
+
+        &#x2F;&#x2F; 使用 s
+    &#125;
+    
+    &#x2F;&#x2F;此时s已被释放，不可用
+&#125;</code></pre>
 
 <p>这是一个将 <code>String</code> 需要的内存返回给分配器的很自然的位置：当 <code>s</code> 离开作用域的时候。当变量离开作用域，Rust 为我们调用一个特殊的函数。这个函数叫做 ，在这里 <code>String</code> 的作者可以放置释放内存的代码。Rust 在结尾的 <code>&#125;</code> 处自动调用 <code>drop</code>。</p>
 <h3 id="所有权"><a href="#所有权" class="headerlink" title="所有权"></a>所有权</h3><p>下面这段代码将会无法通过编译</p>
-<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">foo</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s1</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s2</span> = s1;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;&#123;&#125;, world!&quot;</span>, s1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre class="language-rust" data-language="rust"><code class="language-rust">fn foo() &#123;
+    let s1 &#x3D; String::from(&quot;hello&quot;);
+    let s2 &#x3D; s1;
+
+    println!(&quot;&#123;&#125;, world!&quot;, s1);
+&#125;</code></pre>
 
 <p>原因是<code>string hello</code>的所有权已从s1转移到s2上，s1已无法使用。</p>
 <p>在内存与分配中了解到当变量离开作用域后，Rust 自动调用 <code>drop</code> 函数并清理变量的堆内存。如果<code>s2</code>和<code>s1</code>同时具备所有权，那么当 <code>s2</code> 和 <code>s1</code> 离开作用域，他们都会尝试释放相同的内存。这是一个叫做 <strong>二次释放</strong>（<em>double free</em>）的错误，也是之前提到过的内存安全性 bug 之一。两次释放（相同）内存会导致内存污染，它可能会导致潜在的安全漏洞。</p>
@@ -355,10 +368,30 @@ Version
 <p>存储在栈上的数据（所有基础类型）由于拷贝速度很快，所以在赋值后两个变量会同时具备所有权。</p>
 </blockquote>
 <p>变量的所有权总是遵循相同的模式：将值赋给另一个变量时移动它。当持有堆中数据值的变量离开作用域时，其值将通过 <code>drop</code> 被清理掉，除非数据被移动为另一个变量所有。</p>
-<h4 id="借用与引用"><a href="#借用与引用" class="headerlink" title="借用与引用"></a>借用与引用</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s1</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> (len,s1) = <span class="title function_ invoke__">calculate_length</span>(s1);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;The length of &#x27;&#123;&#125;&#x27; is &#123;&#125;.&quot;</span>, s1, len);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">calculate_length</span>(s: <span class="type">String</span>) <span class="punctuation">-&gt;</span> (<span class="type">usize</span>, <span class="type">String</span>) &#123;</span><br><span class="line">    (s.<span class="title function_ invoke__">len</span>(),s)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="借用与引用"><a href="#借用与引用" class="headerlink" title="借用与引用"></a>借用与引用</h4><pre class="language-rust" data-language="rust"><code class="language-rust">fn main() &#123;
+    let s1 &#x3D; String::from(&quot;hello&quot;);
+
+    let (len,s1) &#x3D; calculate_length(s1);
+
+    println!(&quot;The length of &#39;&#123;&#125;&#39; is &#123;&#125;.&quot;, s1, len);
+&#125;
+
+fn calculate_length(s: String) -&gt; (usize, String) &#123;
+    (s.len(),s)
+&#125;</code></pre>
 
 <p>在每一个函数中都获取所有权并接着返回所有权有些啰嗦，这个时候借用能够有效的简化代码。</p>
-<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s1</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">len</span> = <span class="title function_ invoke__">calculate_length</span>(&amp;s1);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;The length of &#x27;&#123;&#125;&#x27; is &#123;&#125;.&quot;</span>, s1, len);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">calculate_length</span>(s: &amp;<span class="type">String</span>) <span class="punctuation">-&gt;</span> <span class="type">usize</span> &#123;</span><br><span class="line">    s.<span class="title function_ invoke__">len</span>()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre class="language-rust" data-language="rust"><code class="language-rust">fn main() &#123;
+    let s1 &#x3D; String::from(&quot;hello&quot;);
+
+    let len &#x3D; calculate_length(&amp;s1);
+
+    println!(&quot;The length of &#39;&#123;&#125;&#39; is &#123;&#125;.&quot;, s1, len);
+&#125;
+
+fn calculate_length(s: &amp;String) -&gt; usize &#123;
+    s.len()
+&#125;</code></pre>
 
 <p>这些 &amp; 符号就是 <strong>引用</strong>，它们允许你使用值但不获取其所有权。</p>
 <p>引用又区分为可变引用与不可变引用，可变引用允许在其他作用域中修改变量内部的值。</p>
@@ -367,33 +400,101 @@ Version
 <p>一些代码“拥有”一个指向内存的特定指针。 它是该指针的唯一所有者。 它还可以暂时将该内存借给其他代码：代码“借用”它。 借用它一段时间，称为“生命周期”。</p>
 </blockquote>
 <h3 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h3><p>先看一段C++的悬垂指针代码</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> *<span class="title">foo_int</span><span class="params">(<span class="type">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> i = <span class="number">1234</span>;</span><br><span class="line">    &amp;i</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">add_one</span><span class="params">(<span class="type">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> *num = <span class="built_in">foo_int</span>();</span><br><span class="line">    *num + <span class="number">1</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre class="language-cpp" data-language="cpp"><code class="language-cpp">int *foo_int(void)
+&#123;
+    int i &#x3D; 1234;
+    &amp;i
+&#125;
+
+int add_one(void)
+&#123;
+    int *num &#x3D; foo_int();
+    *num + 1
+&#125;</code></pre>
 
 <p>foo_int函数在栈上分配了一个整型，然后保存给一个变量i，最后返回了这个变量i的引用。这里有一个问题：当函数返回时栈内存变成失效。意味着在函数add_one第二行，指针num指向了垃圾值，我们将无法得到想要的结果。虽然这个一个简单的例子，但是在C++的代码里会经常发生。当堆上的内存使用malloc（或new）分配，然后使用free（或delete）释放时，会出现类似的问题，但是您的代码会尝试使用指向该内存的指针执行某些操作。 更现代的C ++使用RAII和构造函数&#x2F;析构函数，但它们无法完全避免“悬垂指针”。 这个问题被称为“悬垂指针”，在rust中悬垂指针将无法通过编译。</p>
-<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">foo_u32</span>() <span class="punctuation">-&gt;</span> &amp;<span class="type">u32</span>&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">i</span> = <span class="number">1</span>;</span><br><span class="line">    &amp;i</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre class="language-rust" data-language="rust"><code class="language-rust">fn foo_u32() -&gt; &amp;u32&#123;
+    let i &#x3D; 1;
+    &amp;i
+&#125;</code></pre>
 
 <p>编译报错</p>
-<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">error[E0106]: missing lifetime specifier</span><br><span class="line">  -<span class="punctuation">-&gt;</span> src/main.rs:<span class="number">60</span>:<span class="number">17</span></span><br><span class="line">   |</span><br><span class="line"><span class="number">60</span> | <span class="keyword">fn</span> <span class="title function_">foo_u32</span>() <span class="punctuation">-&gt;</span> &amp;<span class="type">u32</span>&#123;</span><br><span class="line">   |                 ^ expected named lifetime parameter</span><br><span class="line">   |</span><br><span class="line">   = help: this function<span class="symbol">&#x27;s</span> <span class="keyword">return</span> <span class="keyword">type</span> <span class="title class_">contains</span> a borrowed value, but there is no value <span class="keyword">for</span> <span class="title class_">it</span> to be borrowed from</span><br><span class="line">help: consider using the `<span class="symbol">&#x27;static</span>` lifetime</span><br><span class="line">   |</span><br><span class="line"><span class="number">60</span> | <span class="keyword">fn</span> <span class="title function_">foo_u32</span>() <span class="punctuation">-&gt;</span> &amp;<span class="symbol">&#x27;static</span> <span class="type">u32</span>&#123;</span><br><span class="line">   |                  +++++++</span><br></pre></td></tr></table></figure>
+<pre class="language-rust" data-language="rust"><code class="language-rust">error[E0106]: missing lifetime specifier
+  --&gt; src&#x2F;main.rs:60:17
+   |
+60 | fn foo_u32() -&gt; &amp;u32&#123;
+   |                 ^ expected named lifetime parameter
+   |
+   &#x3D; help: this function&#39;s return type contains a borrowed value, but there is no value for it to be borrowed from
+help: consider using the &#96;&#39;static&#96; lifetime
+   |
+60 | fn foo_u32() -&gt; &amp;&#39;static u32&#123;
+   |                  +++++++</code></pre>
 
 <p>实际上在新版本即使加上静态生命周期（指该内存在整个程序运行期间都不会释放，该应用在程序运行期间总是有效的）描述仍然会引发编译报错。</p>
-<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">foo_u32</span>() <span class="punctuation">-&gt;</span> &amp;<span class="symbol">&#x27;static</span> <span class="type">u32</span>&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">i</span> = <span class="number">1</span>;</span><br><span class="line">    &amp;i</span><br><span class="line">&#125;</span><br><span class="line">error[E0515]: cannot <span class="keyword">return</span> reference to local variable `i`</span><br><span class="line">  -<span class="punctuation">-&gt;</span> src/main.rs:<span class="number">62</span>:<span class="number">5</span></span><br><span class="line">   |</span><br><span class="line"><span class="number">62</span> |     &amp;i</span><br><span class="line">   |     ^^ returns a reference to data owned by the current function</span><br></pre></td></tr></table></figure>
+<pre class="language-rust" data-language="rust"><code class="language-rust">fn foo_u32() -&gt; &amp;&#39;static u32&#123;
+    let i &#x3D; 1;
+    &amp;i
+&#125;
+error[E0515]: cannot return reference to local variable &#96;i&#96;
+  --&gt; src&#x2F;main.rs:62:5
+   |
+62 |     &amp;i
+   |     ^^ returns a reference to data owned by the current function</code></pre>
 
 <p>新版本中禁止将作用域创建的变量引用传递至父作用域，彻底杜绝悬垂指针，当然这里和生命周期关系不大，就不细说了。</p>
 <p>Rust 编译器有一个 借用检查器（<em>borrow checker</em>），它比较作用域来确保所有的借用都是有效的。</p>
-<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">r</span>;                <span class="comment">// ---------+-- &#x27;a</span></span><br><span class="line">                          <span class="comment">//          |</span></span><br><span class="line">    &#123;                     <span class="comment">//          |</span></span><br><span class="line">        <span class="keyword">let</span> <span class="variable">x</span> = <span class="number">5</span>;        <span class="comment">// -+-- &#x27;b  |</span></span><br><span class="line">        r = &amp;x;           <span class="comment">//  |       |</span></span><br><span class="line">    &#125;                     <span class="comment">// -+       |</span></span><br><span class="line">                          <span class="comment">//          |</span></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;r: &#123;&#125;&quot;</span>, r); <span class="comment">//          |</span></span><br><span class="line">&#125;                         <span class="comment">// ---------+</span></span><br></pre></td></tr></table></figure>
+<pre class="language-rust" data-language="rust"><code class="language-rust">&#123;
+    let r;                &#x2F;&#x2F; ---------+-- &#39;a
+                          &#x2F;&#x2F;          |
+    &#123;                     &#x2F;&#x2F;          |
+        let x &#x3D; 5;        &#x2F;&#x2F; -+-- &#39;b  |
+        r &#x3D; &x;           &#x2F;&#x2F;  |       |
+    &#125;                     &#x2F;&#x2F; -+       |
+                          &#x2F;&#x2F;          |
+    println!(&quot;r: &#123;&#125;&quot;, r); &#x2F;&#x2F;          |
+&#125;                         &#x2F;&#x2F; ---------+</code></pre>
 
 <p>这里将 <code>r</code> 的生命周期标记为 <code>&#39;a</code> 并将 <code>x</code> 的生命周期标记为 <code>&#39;b</code>。如你所见，内部的 <code>&#39;b</code> 块要比外部的生命周期 <code>&#39;a</code> 小得多。在编译时，Rust 比较这两个生命周期的大小，并发现 <code>r</code> 拥有生命周期 <code>&#39;a</code>，不过它引用了一个拥有生命周期 <code>&#39;b</code> 的对象。程序被拒绝编译，因为生命周期 <code>&#39;b</code> 比生命周期 <code>&#39;a</code> 要小：被引用的对象比它的引用者存在的时间更短。</p>
 <p>上述是编译器能够检查出引用者和被引用对象的生命周期时的情况，当编译器无法比较生命周期时，会硬性要求手动添加生命周期描述符。</p>
 <p>例如：</p>
-<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">longest</span>(x: &amp;<span class="type">str</span>, y: &amp;<span class="type">str</span>) <span class="punctuation">-&gt;</span> &amp;<span class="type">str</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> x.<span class="title function_ invoke__">len</span>() &gt; y.<span class="title function_ invoke__">len</span>() &#123;</span><br><span class="line">        x</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        y</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre class="language-rust" data-language="rust"><code class="language-rust">fn longest(x: &amp;str, y: &amp;str) -&gt; &amp;str &#123;
+    if x.len() &gt; y.len() &#123;
+        x
+    &#125; else &#123;
+        y
+    &#125;
+&#125;</code></pre>
 
 <p>当我们定义这个函数的时候，并不知道传递给函数的具体值，所以也不知道到底是 <code>if</code> 还是 <code>else</code> 会被执行。我们也不知道传入的引用的具体生命周期，所以也就不能通过观察作用域来确定返回的引用是否总是有效。借用检查器自身同样也无法确定，因为它不知道 <code>x</code> 和 <code>y</code> 的生命周期是如何与返回值的生命周期相关联的。</p>
-<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">longest</span>&lt;<span class="symbol">&#x27;a</span>&gt;(x: &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span>, y: &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span>) <span class="punctuation">-&gt;</span> &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> x.<span class="title function_ invoke__">len</span>() &gt; y.<span class="title function_ invoke__">len</span>() &#123;</span><br><span class="line">        x</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        y</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre class="language-rust" data-language="rust"><code class="language-rust">fn longest&lt;&#39;a&gt;(x: &amp;&#39;a str, y: &amp;&#39;a str) -&gt; &amp;&#39;a str &#123;
+    if x.len() &gt; y.len() &#123;
+        x
+    &#125; else &#123;
+        y
+    &#125;
+&#125;</code></pre>
 
 <p>在添加泛型生命周期标注后，编译器可以知道longest函数中，参数x,y还有返回值的生命周期都是相同的’a，它的实际含义是 <code>longest</code> 函数返回的引用的生命周期与传入该函数的引用的生命周期的较小者一致，当具体的引用被传递给 <code>longest</code> 时，被 <code>&#39;a</code> 所替代的具体生命周期是 <code>x</code> 的作用域与 <code>y</code> 的作用域相重叠的那一部分。因为我们用相同的生命周期参数 <code>&#39;a</code> 标注了返回的引用值，所以返回的引用值就能保证在 <code>x</code> 和 <code>y</code> 中较短的那个生命周期结束之前保持有效。</p>
 <h3 id="并发"><a href="#并发" class="headerlink" title="并发"></a>并发</h3><p>rust的并发编程与go有很多相似之处。</p>
 <h4 id="多线程"><a href="#多线程" class="headerlink" title="多线程"></a>多线程</h4><p>在rust中启用多线程就像go语言启用协程一样简单。</p>
-<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">use</span> std::time::Duration;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">test_thread</span>() &#123;</span><br><span class="line">    <span class="keyword">for</span> <span class="variable">i</span> <span class="keyword">in</span> <span class="number">1</span>..<span class="number">10</span> &#123;</span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;hi number &#123;&#125; from the spawned thread!&quot;</span>, i);</span><br><span class="line">        std::thread::<span class="title function_ invoke__">sleep</span>(Duration::<span class="title function_ invoke__">from_millis</span>(<span class="number">1</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    std::thread::<span class="title function_ invoke__">spawn</span>(test_thread);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> <span class="variable">i</span> <span class="keyword">in</span> <span class="number">1</span>..<span class="number">5</span> &#123;</span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;hi number &#123;&#125; from the main thread!&quot;</span>, i);</span><br><span class="line">        std::thread::<span class="title function_ invoke__">sleep</span>(Duration::<span class="title function_ invoke__">from_millis</span>(<span class="number">1</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre class="language-rust" data-language="rust"><code class="language-rust">use std::time::Duration;
+
+fn test_thread() &#123;
+    for i in 1..10 &#123;
+        println!(&quot;hi number &#123;&#125; from the spawned thread!&quot;, i);
+        std::thread::sleep(Duration::from_millis(1));
+    &#125;
+&#125;
+
+fn main() &#123;
+    std::thread::spawn(test_thread);
+
+    for i in 1..5 &#123;
+        println!(&quot;hi number &#123;&#125; from the main thread!&quot;, i);
+        std::thread::sleep(Duration::from_millis(1));
+    &#125;
+&#125;</code></pre>
 
 <p>使用标准库中的thread::spawn即可，与go存在些许差别。</p>
 <ol>
@@ -407,7 +508,19 @@ Version
 </blockquote>
 <p>通道有两部分组成，一个发送者（transmitter）和一个接收者（receiver）。发送者位于上游位置，在这里可以将橡皮鸭放入河中，接收者则位于下游，橡皮鸭最终会漂流至此。代码中的一部分调用发送者的方法以及希望发送的数据，另一部分则检查接收端收到的消息。当发送者或接收者任一被丢弃时可以认为通道被 <strong>关闭</strong>（<em>closed</em>）了。</p>
 <p>示例：</p>
-<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> (tx,rx) = <span class="title function_ invoke__">channel</span>();</span><br><span class="line">    <span class="comment">//tx是发送者，rx是接受者</span></span><br><span class="line">    tx.<span class="title function_ invoke__">send</span>(<span class="number">1</span>).<span class="title function_ invoke__">unwrap</span>();</span><br><span class="line">    tx.<span class="title function_ invoke__">send</span>(<span class="number">2</span>).<span class="title function_ invoke__">unwrap</span>();</span><br><span class="line"></span><br><span class="line">    <span class="title function_ invoke__">drop</span>(tx);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">let</span> <span class="variable">i</span> = rx.<span class="title function_ invoke__">recv</span>().<span class="title function_ invoke__">unwrap</span>();</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;&#123;&#125;&quot;</span>,i);</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">i</span> = rx.<span class="title function_ invoke__">recv</span>().<span class="title function_ invoke__">unwrap</span>();</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;&#123;&#125;&quot;</span>,i);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre class="language-rust" data-language="rust"><code class="language-rust">fn main() &#123;
+    let (tx,rx) &#x3D; channel();
+    &#x2F;&#x2F;tx是发送者，rx是接受者
+    tx.send(1).unwrap();
+    tx.send(2).unwrap();
+
+    drop(tx);
+    
+    let i &#x3D; rx.recv().unwrap();
+    println!(&quot;&#123;&#125;&quot;,i);
+    let i &#x3D; rx.recv().unwrap();
+    println!(&quot;&#123;&#125;&quot;,i);
+&#125;</code></pre>
 
 <p>rust的channel和go存在部分差异</p>
 <ol>

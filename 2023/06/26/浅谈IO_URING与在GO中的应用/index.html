@@ -305,7 +305,8 @@ io_uring 是 2019 年 Linux 5.1 内核首次引入的高性">
 </tbody></table>
 <p><a target="_blank" rel="noopener" href="http://kernel.dk/io_uring.pdf">io_uring</a> 是 2019 年 <strong>Linux 5.1</strong> 内核首次引入的高性能 <strong>异步 I&#x2F;O 框架</strong>，能显著加速 I&#x2F;O 密集型应用的性能。</p>
 <hr>
-<h2 id="LINUX-IO演变"><a href="#LINUX-IO演变" class="headerlink" title="LINUX IO演变"></a>LINUX IO演变</h2><h3 id="1-基于fd的阻塞式IO"><a href="#1-基于fd的阻塞式IO" class="headerlink" title="1. 基于fd的阻塞式IO"></a>1. 基于fd的阻塞式IO</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ssize_t</span> <span class="title function_">read</span><span class="params">(<span class="type">int</span> fd, <span class="type">void</span> *buf, <span class="type">size_t</span> count)</span>;</span><br><span class="line"><span class="type">ssize_t</span> <span class="title function_">write</span><span class="params">(<span class="type">int</span> fd, <span class="type">const</span> <span class="type">void</span> *buf, <span class="type">size_t</span> count)</span>;</span><br></pre></td></tr></table></figure>
+<h2 id="LINUX-IO演变"><a href="#LINUX-IO演变" class="headerlink" title="LINUX IO演变"></a>LINUX IO演变</h2><h3 id="1-基于fd的阻塞式IO"><a href="#1-基于fd的阻塞式IO" class="headerlink" title="1. 基于fd的阻塞式IO"></a>1. 基于fd的阻塞式IO</h3><pre class="language-c" data-language="c"><code class="language-c">ssize_t read(int fd, void *buf, size_t count);
+ssize_t write(int fd, const void *buf, size_t count);</code></pre>
 
 <p>linux系统下一切皆文件，kernal提供了基于fd的系统调用read()和write()，这些fd指向的可能是物理文件，也可能是network socket。这两个系统调用称为阻塞式系统调用，用户态调用read和write时会陷入内核进入sleep状态直到数据准备完成，然后将数据从内核态拷贝至用户态。</p>
 <p>阻塞式io sleep时不消耗cpu资源，能及时响应准备就绪的数据。由于每一次系统调用都会阻塞线程，需要为每一个请求分配一个线程，系统开销大，不适用于并发量大的应用。</p>
@@ -391,13 +392,13 @@ io_uring 是 2019 年 Linux 5.1 内核首次引入的高性">
 <p>这种模式中，会 <strong>创建一个内核线程</strong>来执行 SQ 的轮询工作。</p>
 <p>使用这种模式的 io_uring 实例， <strong>应用无需切到到内核态</strong> 就能触发I&#x2F;O 操作。 通过 SQ 来提交 SQE，以及监控 CQ 的完成状态，应用无需任何系统调用，就能提交IO和获取结果。</p>
 <p>如果内核线程的空闲时间超过了用户的配置值，它会通知应用，然后挂起。 这种情况下，应用必须调用 <code>io_uring_enter()</code> 来唤醒内核线程。</p>
-<h3 id="6-系统调用"><a href="#6-系统调用" class="headerlink" title="6. 系统调用"></a>6. 系统调用</h3><h4 id="io-uring-setup"><a href="#io-uring-setup" class="headerlink" title="io_uring_setup"></a>io_uring_setup</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">io_uring_setup</span><span class="params">(u32 entries, <span class="keyword">struct</span> io_uring_params *p)</span>;</span><br></pre></td></tr></table></figure>
+<h3 id="6-系统调用"><a href="#6-系统调用" class="headerlink" title="6. 系统调用"></a>6. 系统调用</h3><h4 id="io-uring-setup"><a href="#io-uring-setup" class="headerlink" title="io_uring_setup"></a>io_uring_setup</h4><pre class="language-c" data-language="c"><code class="language-c">int io_uring_setup(u32 entries, struct io_uring_params *p);</code></pre>
 
 <p>该系统调用创建一组sq和cq，queue size为下一个大于entries的2的幂，返回文件描述符，用于在该io_uring实例上进行操作。</p>
-<h4 id="io-uring-register"><a href="#io-uring-register" class="headerlink" title="io_uring_register"></a>io_uring_register</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">io_uring_register</span><span class="params">(<span class="type">unsigned</span> <span class="type">int</span> fd, <span class="type">unsigned</span> <span class="type">int</span> opcode, <span class="type">void</span> *arg, <span class="type">unsigned</span> <span class="type">int</span> nr_args)</span>;</span><br></pre></td></tr></table></figure>
+<h4 id="io-uring-register"><a href="#io-uring-register" class="headerlink" title="io_uring_register"></a>io_uring_register</h4><pre class="language-c" data-language="c"><code class="language-c">int io_uring_register(unsigned int fd, unsigned int opcode, void *arg, unsigned int nr_args);</code></pre>
 
 <p>该系统调用注册用于异步IO的文件&#x2F;用户buffer，使得内核能够长时间持有该文件在内核态的数据结构引用，或创建应用内存的长期映射。注册的缓冲区是锁定内存的（提前分配物理内存，节省pagefault开销），并且计入锁定内存限制（<strong>RLIMIT_MEMLOCK</strong>）；每个buffer有1G的限制，且已经注册buffer无法调整大小，想要调整只能先unregister，然后重新register。</p>
-<h4 id="io-uring-enter"><a href="#io-uring-enter" class="headerlink" title="io_uring_enter"></a>io_uring_enter</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">io_uring_enter</span><span class="params">(<span class="type">unsigned</span> <span class="type">int</span> fd, <span class="type">unsigned</span> <span class="type">int</span> to_submit, <span class="type">unsigned</span> <span class="type">int</span> min_complete, <span class="type">unsigned</span> <span class="type">int</span> flags, <span class="type">sigset_t</span> *sig)</span>;</span><br></pre></td></tr></table></figure>
+<h4 id="io-uring-enter"><a href="#io-uring-enter" class="headerlink" title="io_uring_enter"></a>io_uring_enter</h4><pre class="language-c" data-language="c"><code class="language-c">int io_uring_enter(unsigned int fd, unsigned int to_submit, unsigned int min_complete, unsigned int flags, sigset_t *sig);</code></pre>
 
 <p>这个系统调用是io_uring的核心接口，用于提交IO请求、完成IO。每次调用同时执行：1. 提交IO请求 2. 等待IO完成</p>
 <h3 id="7-高级特性"><a href="#7-高级特性" class="headerlink" title="7.高级特性"></a>7.高级特性</h3><h4 id="File-registration"><a href="#File-registration" class="headerlink" title="File registration"></a><strong>File registration</strong></h4><p>针对同一文件进行重复操作的场景，io_uring支持提前注册文件描述符，避免每次指定文件描述符时内核将文件描述符映射到内核态的开销。</p>
@@ -406,7 +407,292 @@ io_uring 是 2019 年 Linux 5.1 内核首次引入的高性">
 <h4 id="Linked-operations"><a href="#Linked-operations" class="headerlink" title="Linked operations"></a>Linked operations</h4><p><a target="_blank" rel="noopener" href="http://kernel.dk/io_uring.pdf">io_uring</a>支持用户按一定顺序提交IO请求，IO请求执行顺序严格遵循提交顺序（无并发纯查询ing）。</p>
 <h3 id="8-liburing"><a href="#8-liburing" class="headerlink" title="8. liburing"></a>8. liburing</h3><p>底层的io_uring虽然总共就3个系统调用，但实际使用却非常复杂。liburing提供了一些简单封装的api，使应用避免直接使用底层的系统调用。</p>
 <h2 id="基于liburing的示例"><a href="#基于liburing的示例" class="headerlink" title="基于liburing的示例"></a>基于liburing的示例</h2><p>下面是使用liburing实现的cp命令示例</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* SPDX-License-Identifier: MIT */</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * gcc -Wall -O2 -D_GNU_SOURCE -o io_uring-cp io_uring-cp.c -luring</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;assert.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;errno.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;inttypes.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/ioctl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;liburing.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> QD	64</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> BS	(32*1024)</span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> infd, outfd;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">io_data</span> &#123;</span></span><br><span class="line">    <span class="type">int</span> read;</span><br><span class="line">    <span class="type">off_t</span> first_offset, offset;</span><br><span class="line">    <span class="type">size_t</span> first_len;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">iovec</span> <span class="title">iov</span>;</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">setup_context</span><span class="params">(<span class="type">unsigned</span> entries, <span class="keyword">struct</span> io_uring *ring)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> ret;</span><br><span class="line"></span><br><span class="line">    ret = io_uring_queue_init(entries, ring, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span> (ret &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;queue_init: %s\n&quot;</span>, strerror(-ret));</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">get_file_size</span><span class="params">(<span class="type">int</span> fd, <span class="type">off_t</span> *size)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">stat</span> <span class="title">st</span>;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (fstat(fd, &amp;st) &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">if</span> (S_ISREG(st.st_mode)) &#123;</span><br><span class="line">        *size = st.st_size;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (S_ISBLK(st.st_mode)) &#123;</span><br><span class="line">        <span class="type">unsigned</span> <span class="type">long</span> <span class="type">long</span> bytes;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (ioctl(fd, BLKGETSIZE64, &amp;bytes) != <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">        *size = bytes;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">queue_prepped</span><span class="params">(<span class="keyword">struct</span> io_uring *ring, <span class="keyword">struct</span> io_data *data)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">io_uring_sqe</span> *<span class="title">sqe</span>;</span></span><br><span class="line"></span><br><span class="line">    sqe = io_uring_get_sqe(ring);</span><br><span class="line">    assert(sqe);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (data-&gt;read)</span><br><span class="line">        io_uring_prep_readv(sqe, infd, &amp;data-&gt;iov, <span class="number">1</span>, data-&gt;offset);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        io_uring_prep_writev(sqe, outfd, &amp;data-&gt;iov, <span class="number">1</span>, data-&gt;offset);</span><br><span class="line"></span><br><span class="line">    io_uring_sqe_set_data(sqe, data);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">queue_read</span><span class="params">(<span class="keyword">struct</span> io_uring *ring, <span class="type">off_t</span> size, <span class="type">off_t</span> offset)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">io_uring_sqe</span> *<span class="title">sqe</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">io_data</span> *<span class="title">data</span>;</span></span><br><span class="line"></span><br><span class="line">    data = <span class="built_in">malloc</span>(size + <span class="keyword">sizeof</span>(*data));</span><br><span class="line">    <span class="keyword">if</span> (!data)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    sqe = io_uring_get_sqe(ring);</span><br><span class="line">    <span class="keyword">if</span> (!sqe) &#123;</span><br><span class="line">        <span class="built_in">free</span>(data);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    data-&gt;read = <span class="number">1</span>;</span><br><span class="line">    data-&gt;offset = data-&gt;first_offset = offset;</span><br><span class="line"></span><br><span class="line">    data-&gt;iov.iov_base = data + <span class="number">1</span>;</span><br><span class="line">    data-&gt;iov.iov_len = size;</span><br><span class="line">    data-&gt;first_len = size;</span><br><span class="line"></span><br><span class="line">    io_uring_prep_readv(sqe, infd, &amp;data-&gt;iov, <span class="number">1</span>, offset);</span><br><span class="line">    io_uring_sqe_set_data(sqe, data);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">queue_write</span><span class="params">(<span class="keyword">struct</span> io_uring *ring, <span class="keyword">struct</span> io_data *data)</span></span><br><span class="line">&#123;</span><br><span class="line">    data-&gt;read = <span class="number">0</span>;</span><br><span class="line">    data-&gt;offset = data-&gt;first_offset;</span><br><span class="line"></span><br><span class="line">    data-&gt;iov.iov_base = data + <span class="number">1</span>;</span><br><span class="line">    data-&gt;iov.iov_len = data-&gt;first_len;</span><br><span class="line"></span><br><span class="line">    queue_prepped(ring, data);</span><br><span class="line">    io_uring_submit(ring);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">copy_file</span><span class="params">(<span class="keyword">struct</span> io_uring *ring, <span class="type">off_t</span> insize)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> reads, writes;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">io_uring_cqe</span> *<span class="title">cqe</span>;</span></span><br><span class="line">    <span class="type">off_t</span> write_left, offset;</span><br><span class="line">    <span class="type">int</span> ret;</span><br><span class="line"></span><br><span class="line">    write_left = insize;</span><br><span class="line">    writes = reads = offset = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (insize || write_left) &#123;</span><br><span class="line">        <span class="type">unsigned</span> <span class="type">long</span> had_reads;</span><br><span class="line">        <span class="type">int</span> got_comp;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         * Queue up as many reads as we can</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        had_reads = reads;</span><br><span class="line">        <span class="keyword">while</span> (insize) &#123;</span><br><span class="line">            <span class="type">off_t</span> this_size = insize;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (reads + writes &gt;= QD)</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">if</span> (this_size &gt; BS)</span><br><span class="line">                this_size = BS;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (!this_size)</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (queue_read(ring, this_size, offset))</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">            insize -= this_size;</span><br><span class="line">            offset += this_size;</span><br><span class="line">            reads++;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (had_reads != reads) &#123;</span><br><span class="line">            ret = io_uring_submit(ring);</span><br><span class="line">            <span class="keyword">if</span> (ret &lt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;io_uring_submit: %s\n&quot;</span>, strerror(-ret));</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         * Queue is full at this point. Find at least one completion.</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        got_comp = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> (write_left) &#123;</span><br><span class="line">            <span class="class"><span class="keyword">struct</span> <span class="title">io_data</span> *<span class="title">data</span>;</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (!got_comp) &#123;</span><br><span class="line">                ret = io_uring_wait_cqe(ring, &amp;cqe);</span><br><span class="line">                got_comp = <span class="number">1</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                ret = io_uring_peek_cqe(ring, &amp;cqe);</span><br><span class="line">                <span class="keyword">if</span> (ret == -EAGAIN) &#123;</span><br><span class="line">                    cqe = <span class="literal">NULL</span>;</span><br><span class="line">                    ret = <span class="number">0</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (ret &lt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;io_uring_peek_cqe: %s\n&quot;</span>,</span><br><span class="line">                        strerror(-ret));</span><br><span class="line">                <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (!cqe)</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">            data = io_uring_cqe_get_data(cqe);</span><br><span class="line">            <span class="keyword">if</span> (cqe-&gt;res &lt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="keyword">if</span> (cqe-&gt;res == -EAGAIN) &#123;</span><br><span class="line">                    queue_prepped(ring, data);</span><br><span class="line">                    io_uring_submit(ring);</span><br><span class="line">                    io_uring_cqe_seen(ring, cqe);</span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;cqe failed: %s\n&quot;</span>,</span><br><span class="line">                        strerror(-cqe-&gt;res));</span><br><span class="line">                <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> ((<span class="type">size_t</span>)cqe-&gt;res != data-&gt;iov.iov_len) &#123;</span><br><span class="line">                <span class="comment">/* Short read/write, adjust and requeue */</span></span><br><span class="line">                data-&gt;iov.iov_base += cqe-&gt;res;</span><br><span class="line">                data-&gt;iov.iov_len -= cqe-&gt;res;</span><br><span class="line">                data-&gt;offset += cqe-&gt;res;</span><br><span class="line">                queue_prepped(ring, data);</span><br><span class="line">                io_uring_submit(ring);</span><br><span class="line">                io_uring_cqe_seen(ring, cqe);</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">/*</span></span><br><span class="line"><span class="comment">             * All done. if write, nothing else to do. if read,</span></span><br><span class="line"><span class="comment">             * queue up corresponding write.</span></span><br><span class="line"><span class="comment">             */</span></span><br><span class="line">            <span class="keyword">if</span> (data-&gt;read) &#123;</span><br><span class="line">                queue_write(ring, data);</span><br><span class="line">                write_left -= data-&gt;first_len;</span><br><span class="line">                reads--;</span><br><span class="line">                writes++;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="built_in">free</span>(data);</span><br><span class="line">                writes--;</span><br><span class="line">            &#125;</span><br><span class="line">            io_uring_cqe_seen(ring, cqe);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* wait out pending writes */</span></span><br><span class="line">    <span class="keyword">while</span> (writes) &#123;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">io_data</span> *<span class="title">data</span>;</span></span><br><span class="line"></span><br><span class="line">        ret = io_uring_wait_cqe(ring, &amp;cqe);</span><br><span class="line">        <span class="keyword">if</span> (ret) &#123;</span><br><span class="line">            <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;wait_cqe=%d\n&quot;</span>, ret);</span><br><span class="line">            <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (cqe-&gt;res &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;write res=%d\n&quot;</span>, cqe-&gt;res);</span><br><span class="line">            <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        data = io_uring_cqe_get_data(cqe);</span><br><span class="line">        <span class="built_in">free</span>(data);</span><br><span class="line">        writes--;</span><br><span class="line">        io_uring_cqe_seen(ring, cqe);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> *argv[])</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">io_uring</span> <span class="title">ring</span>;</span></span><br><span class="line">    <span class="type">off_t</span> insize;</span><br><span class="line">    <span class="type">int</span> ret;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (argc &lt; <span class="number">3</span>) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%s: infile outfile\n&quot;</span>, argv[<span class="number">0</span>]);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  </span><br><span class="line">    infd = open(argv[<span class="number">1</span>], O_RDONLY);</span><br><span class="line">    <span class="keyword">if</span> (infd &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        perror(<span class="string">&quot;open infile&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    outfd = open(argv[<span class="number">2</span>], O_WRONLY | O_CREAT | O_TRUNC, <span class="number">0644</span>);</span><br><span class="line">    <span class="keyword">if</span> (outfd &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        perror(<span class="string">&quot;open outfile&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  	<span class="comment">//初始化io_uring sq和cq，如果异常直接退出</span></span><br><span class="line">    <span class="keyword">if</span> (setup_context(QD, &amp;ring))</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (get_file_size(infd, &amp;insize))</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">  	<span class="comment">//使用io_uring实现的copy</span></span><br><span class="line">    ret = copy_file(&amp;ring, insize);</span><br><span class="line"></span><br><span class="line">    close(infd);</span><br><span class="line">    close(outfd);</span><br><span class="line">  </span><br><span class="line">    <span class="comment">//关闭io_uring实例</span></span><br><span class="line">    io_uring_queue_exit(&amp;ring);</span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre class="language-c" data-language="c"><code class="language-c">&#x2F;* SPDX-License-Identifier: MIT *&#x2F;
+&#x2F;*
+ * gcc -Wall -O2 -D_GNU_SOURCE -o io_uring-cp io_uring-cp.c -luring
+ *&#x2F;
+#include &lt;stdio.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;assert.h&gt;
+#include &lt;errno.h&gt;
+#include &lt;inttypes.h&gt;
+#include &lt;sys&#x2F;types.h&gt;
+#include &lt;sys&#x2F;stat.h&gt;
+#include &lt;sys&#x2F;ioctl.h&gt;
+#include &lt;liburing.h&gt;
+
+#define QD	64
+#define BS	(32*1024)
+
+static int infd, outfd;
+
+struct io_data &#123;
+    int read;
+    off_t first_offset, offset;
+    size_t first_len;
+    struct iovec iov;
+&#125;;
+
+static int setup_context(unsigned entries, struct io_uring *ring)
+&#123;
+    int ret;
+
+    ret &#x3D; io_uring_queue_init(entries, ring, 0);
+    if (ret &lt; 0) &#123;
+        fprintf(stderr, &quot;queue_init: %s\n&quot;, strerror(-ret));
+        return -1;
+    &#125;
+
+    return 0;
+&#125;
+
+static int get_file_size(int fd, off_t *size)
+&#123;
+    struct stat st;
+
+    if (fstat(fd, &amp;st) &lt; 0)
+        return -1;
+    if (S_ISREG(st.st_mode)) &#123;
+        *size &#x3D; st.st_size;
+        return 0;
+    &#125; else if (S_ISBLK(st.st_mode)) &#123;
+        unsigned long long bytes;
+
+        if (ioctl(fd, BLKGETSIZE64, &amp;bytes) !&#x3D; 0)
+            return -1;
+
+        *size &#x3D; bytes;
+        return 0;
+    &#125;
+
+    return -1;
+&#125;
+
+static void queue_prepped(struct io_uring *ring, struct io_data *data)
+&#123;
+    struct io_uring_sqe *sqe;
+
+    sqe &#x3D; io_uring_get_sqe(ring);
+    assert(sqe);
+
+    if (data-&gt;read)
+        io_uring_prep_readv(sqe, infd, &amp;data-&gt;iov, 1, data-&gt;offset);
+    else
+        io_uring_prep_writev(sqe, outfd, &amp;data-&gt;iov, 1, data-&gt;offset);
+
+    io_uring_sqe_set_data(sqe, data);
+&#125;
+
+static int queue_read(struct io_uring *ring, off_t size, off_t offset)
+&#123;
+    struct io_uring_sqe *sqe;
+    struct io_data *data;
+
+    data &#x3D; malloc(size + sizeof(*data));
+    if (!data)
+        return 1;
+
+    sqe &#x3D; io_uring_get_sqe(ring);
+    if (!sqe) &#123;
+        free(data);
+        return 1;
+    &#125;
+
+    data-&gt;read &#x3D; 1;
+    data-&gt;offset &#x3D; data-&gt;first_offset &#x3D; offset;
+
+    data-&gt;iov.iov_base &#x3D; data + 1;
+    data-&gt;iov.iov_len &#x3D; size;
+    data-&gt;first_len &#x3D; size;
+
+    io_uring_prep_readv(sqe, infd, &amp;data-&gt;iov, 1, offset);
+    io_uring_sqe_set_data(sqe, data);
+    return 0;
+&#125;
+
+static void queue_write(struct io_uring *ring, struct io_data *data)
+&#123;
+    data-&gt;read &#x3D; 0;
+    data-&gt;offset &#x3D; data-&gt;first_offset;
+
+    data-&gt;iov.iov_base &#x3D; data + 1;
+    data-&gt;iov.iov_len &#x3D; data-&gt;first_len;
+
+    queue_prepped(ring, data);
+    io_uring_submit(ring);
+&#125;
+
+static int copy_file(struct io_uring *ring, off_t insize)
+&#123;
+    unsigned long reads, writes;
+    struct io_uring_cqe *cqe;
+    off_t write_left, offset;
+    int ret;
+
+    write_left &#x3D; insize;
+    writes &#x3D; reads &#x3D; offset &#x3D; 0;
+
+    while (insize || write_left) &#123;
+        unsigned long had_reads;
+        int got_comp;
+
+        &#x2F;*
+         * Queue up as many reads as we can
+         *&#x2F;
+        had_reads &#x3D; reads;
+        while (insize) &#123;
+            off_t this_size &#x3D; insize;
+
+            if (reads + writes &gt;&#x3D; QD)
+                break;
+            if (this_size &gt; BS)
+                this_size &#x3D; BS;
+            else if (!this_size)
+                break;
+
+            if (queue_read(ring, this_size, offset))
+                break;
+
+            insize -&#x3D; this_size;
+            offset +&#x3D; this_size;
+            reads++;
+        &#125;
+
+        if (had_reads !&#x3D; reads) &#123;
+            ret &#x3D; io_uring_submit(ring);
+            if (ret &lt; 0) &#123;
+                fprintf(stderr, &quot;io_uring_submit: %s\n&quot;, strerror(-ret));
+                break;
+            &#125;
+        &#125;
+
+        &#x2F;*
+         * Queue is full at this point. Find at least one completion.
+         *&#x2F;
+        got_comp &#x3D; 0;
+        while (write_left) &#123;
+            struct io_data *data;
+
+            if (!got_comp) &#123;
+                ret &#x3D; io_uring_wait_cqe(ring, &amp;cqe);
+                got_comp &#x3D; 1;
+            &#125; else &#123;
+                ret &#x3D; io_uring_peek_cqe(ring, &amp;cqe);
+                if (ret &#x3D;&#x3D; -EAGAIN) &#123;
+                    cqe &#x3D; NULL;
+                    ret &#x3D; 0;
+                &#125;
+            &#125;
+            if (ret &lt; 0) &#123;
+                fprintf(stderr, &quot;io_uring_peek_cqe: %s\n&quot;,
+                        strerror(-ret));
+                return 1;
+            &#125;
+            if (!cqe)
+                break;
+
+            data &#x3D; io_uring_cqe_get_data(cqe);
+            if (cqe-&gt;res &lt; 0) &#123;
+                if (cqe-&gt;res &#x3D;&#x3D; -EAGAIN) &#123;
+                    queue_prepped(ring, data);
+                    io_uring_submit(ring);
+                    io_uring_cqe_seen(ring, cqe);
+                    continue;
+                &#125;
+                fprintf(stderr, &quot;cqe failed: %s\n&quot;,
+                        strerror(-cqe-&gt;res));
+                return 1;
+            &#125; else if ((size_t)cqe-&gt;res !&#x3D; data-&gt;iov.iov_len) &#123;
+                &#x2F;* Short read&#x2F;write, adjust and requeue *&#x2F;
+                data-&gt;iov.iov_base +&#x3D; cqe-&gt;res;
+                data-&gt;iov.iov_len -&#x3D; cqe-&gt;res;
+                data-&gt;offset +&#x3D; cqe-&gt;res;
+                queue_prepped(ring, data);
+                io_uring_submit(ring);
+                io_uring_cqe_seen(ring, cqe);
+                continue;
+            &#125;
+
+            &#x2F;*
+             * All done. if write, nothing else to do. if read,
+             * queue up corresponding write.
+             *&#x2F;
+            if (data-&gt;read) &#123;
+                queue_write(ring, data);
+                write_left -&#x3D; data-&gt;first_len;
+                reads--;
+                writes++;
+            &#125; else &#123;
+                free(data);
+                writes--;
+            &#125;
+            io_uring_cqe_seen(ring, cqe);
+        &#125;
+    &#125;
+
+    &#x2F;* wait out pending writes *&#x2F;
+    while (writes) &#123;
+        struct io_data *data;
+
+        ret &#x3D; io_uring_wait_cqe(ring, &amp;cqe);
+        if (ret) &#123;
+            fprintf(stderr, &quot;wait_cqe&#x3D;%d\n&quot;, ret);
+            return 1;
+        &#125;
+        if (cqe-&gt;res &lt; 0) &#123;
+            fprintf(stderr, &quot;write res&#x3D;%d\n&quot;, cqe-&gt;res);
+            return 1;
+        &#125;
+        data &#x3D; io_uring_cqe_get_data(cqe);
+        free(data);
+        writes--;
+        io_uring_cqe_seen(ring, cqe);
+    &#125;
+
+    return 0;
+&#125;
+
+int main(int argc, char *argv[])
+&#123;
+    struct io_uring ring;
+    off_t insize;
+    int ret;
+
+    if (argc &lt; 3) &#123;
+        printf(&quot;%s: infile outfile\n&quot;, argv[0]);
+        return 1;
+    &#125;
+  
+    infd &#x3D; open(argv[1], O_RDONLY);
+    if (infd &lt; 0) &#123;
+        perror(&quot;open infile&quot;);
+        return 1;
+    &#125;
+    outfd &#x3D; open(argv[2], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (outfd &lt; 0) &#123;
+        perror(&quot;open outfile&quot;);
+        return 1;
+    &#125;
+
+  	&#x2F;&#x2F;初始化io_uring sq和cq，如果异常直接退出
+    if (setup_context(QD, &amp;ring))
+        return 1;
+    if (get_file_size(infd, &amp;insize))
+        return 1;
+
+  	&#x2F;&#x2F;使用io_uring实现的copy
+    ret &#x3D; copy_file(&amp;ring, insize);
+
+    close(infd);
+    close(outfd);
+  
+    &#x2F;&#x2F;关闭io_uring实例
+    io_uring_queue_exit(&amp;ring);
+    return ret;
+&#125;</code></pre>
 
 <h2 id="benchmark"><a href="#benchmark" class="headerlink" title="benchmark"></a>benchmark</h2><blockquote>
 <p>对于已经在使用aio的应用，不要期待换成io_uring后能获得多少性能提升（即使使用高级特性，也只有5%左右)。<code>io_uring</code> 性能相关的底层机制与 <code>linux-aio</code> 并无本质不同（都是异步提交，轮询结果）。liburing革命性的贡献在于，所有IO场景都能使用异步IO享用其优良特性，而非aio那样仅仅局限于数据库领域的IO。</p>
