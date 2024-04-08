@@ -319,15 +319,206 @@ Version
 <p>内存bug之所以难以发现，是因为你不能轻松地编写测试来捕获它。如果你在beta测试期间没有发现bug，那么它可能会在代码中存在数年，就像定时炸弹等待着爆炸的那一刻。当然，也有像Valgrind这样的工具可以帮助捕获这些bug。但即使是Valgrind，如果问题发生时不是执行在调试模式下，或者执行时没有表现为内存方面的问题，它也不会捕获到bug。</p>
 <p>因此，通过使用Rust，我们消除了最复杂、最不可预测的一类错误。</p>
 <h3 id="媲美C-C-的高性能"><a href="#媲美C-C-的高性能" class="headerlink" title="媲美C&#x2F;C++的高性能"></a>媲美C&#x2F;C++的高性能</h3><p>数据来源：<a target="_blank" rel="noopener" href="https://benchmarksgame-team.pages.debian.net/benchmarksgame">benchmarksgame</a></p>
-<h4 id="RUST-VS-C"><a href="#RUST-VS-C" class="headerlink" title="RUST VS C"></a>RUST VS C</h4><p>![1712393986884](C:\Users\41704\Documents\WeChat Files\wxid_b7yv0lq6dk5w12\FileStorage\Temp\1712393986884.jpg)</p>
-<p>![1712393999904](C:\Users\41704\Documents\WeChat Files\wxid_b7yv0lq6dk5w12\FileStorage\Temp\1712393999904.jpg)</p>
-<p>![1712394016757](C:\Users\41704\Documents\WeChat Files\wxid_b7yv0lq6dk5w12\FileStorage\Temp\1712394016757.jpg)</p>
-<h4 id="RUST-VS-C-1"><a href="#RUST-VS-C-1" class="headerlink" title="RUST VS C++"></a>RUST VS C++</h4><p>![1712394040915](C:\Users\41704\Documents\WeChat Files\wxid_b7yv0lq6dk5w12\FileStorage\Temp\1712394040915.jpg)</p>
-<p>![1712394045009(1)](C:\Users\41704\Documents\WeChat Files\wxid_b7yv0lq6dk5w12\FileStorage\Temp\1712394045009(1).jpg)</p>
-<p>![1712394048865](C:\Users\41704\Documents\WeChat Files\wxid_b7yv0lq6dk5w12\FileStorage\Temp\1712394048865.jpg)</p>
-<h4 id="RUST-VS-GO"><a href="#RUST-VS-GO" class="headerlink" title="RUST VS GO"></a>RUST VS GO</h4><p>![1712394078828](C:\Users\41704\Documents\WeChat Files\wxid_b7yv0lq6dk5w12\FileStorage\Temp\1712394078828.jpg)</p>
-<p>![1712394082691(1)](C:\Users\41704\Documents\WeChat Files\wxid_b7yv0lq6dk5w12\FileStorage\Temp\1712394082691(1).jpg)</p>
-<p>![1712394086927](C:\Users\41704\Documents\WeChat Files\wxid_b7yv0lq6dk5w12\FileStorage\Temp\1712394086927.jpg)</p>
+<h4 id="RUST-VS-C"><a href="#RUST-VS-C" class="headerlink" title="RUST VS C"></a>RUST VS C</h4><ul>
+<li>fannkuch-redux</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>source</th>
+<th>mem</th>
+<th>gz</th>
+<th>cpu</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>C</td>
+<td>11236</td>
+<td>1576</td>
+<td>8.34</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>11036</td>
+<td>1253</td>
+<td>13.93</td>
+</tr>
+</tbody></table>
+<ul>
+<li>n-body</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>source</th>
+<th>mem</th>
+<th>gz</th>
+<th>cpu</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>C</td>
+<td>11392</td>
+<td>1633</td>
+<td>2.08</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>11068</td>
+<td>1874</td>
+<td>2.81</td>
+</tr>
+</tbody></table>
+<h4 id="RUST-VS-C-1"><a href="#RUST-VS-C-1" class="headerlink" title="RUST VS C++"></a>RUST VS C++</h4><ul>
+<li>fannkuch-redux</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>source</th>
+<th>mem</th>
+<th>gz</th>
+<th>cpu</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>C++</td>
+<td>10936</td>
+<td>1528</td>
+<td>12.80</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>11036</td>
+<td>1253</td>
+<td>13.93</td>
+</tr>
+</tbody></table>
+<ul>
+<li>n-body</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>source</th>
+<th>mem</th>
+<th>gz</th>
+<th>cpu</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>C++</td>
+<td>10960</td>
+<td>1927</td>
+<td>2.14</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>11068</td>
+<td>1874</td>
+<td>2.81</td>
+</tr>
+</tbody></table>
+<ul>
+<li>spectral-norm</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>source</th>
+<th>mem</th>
+<th>gz</th>
+<th>cpu</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>C++</td>
+<td>10984</td>
+<td>1044</td>
+<td>2.84</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>11124</td>
+<td>1126</td>
+<td>2.84</td>
+</tr>
+</tbody></table>
+<h4 id="RUST-VS-GO"><a href="#RUST-VS-GO" class="headerlink" title="RUST VS GO"></a>RUST VS GO</h4><ul>
+<li>fannkuch-redux</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>source</th>
+<th>mem</th>
+<th>gz</th>
+<th>cpu</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Go</td>
+<td>10884</td>
+<td>969</td>
+<td>32.39</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>11036</td>
+<td>1253</td>
+<td>13.93</td>
+</tr>
+</tbody></table>
+<ul>
+<li>n-body</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>source</th>
+<th>mem</th>
+<th>gz</th>
+<th>cpu</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Go</td>
+<td>10968</td>
+<td>1200</td>
+<td>6.37</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>11068</td>
+<td>1874</td>
+<td>2.81</td>
+</tr>
+</tbody></table>
+<ul>
+<li>spectral-norm</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>source</th>
+<th>mem</th>
+<th>gz</th>
+<th>cpu</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Go</td>
+<td>10972</td>
+<td>411</td>
+<td>5.32</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>11124</td>
+<td>1126</td>
+<td>2.84</td>
+</tr>
+</tbody></table>
 <h3 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h3><ol>
 <li>Rust 消除数据竞争，天生线程安全，解放多线程生产力，是 Rust 明显比 C &#x2F; C++ &#x2F; Go 等语言优越的地方。</li>
 <li>Rust 语言支持异步高并发编程。</li>
@@ -548,7 +739,10 @@ fn main() &#123;
 <p>【最短的捷径就是绕远路】</p>
 <p>学习Rust有没有捷径，有：Rust在很多feature上都与haskell有相似之处，例如枚举、trait、函数式编程，有haskell基础学习rust会更简单。但是不推荐无haskell和rust经验的人先学习haskell，因为haskell要比rust更困难。</p>
 </blockquote>
-<h3 id="开发工具"><a href="#开发工具" class="headerlink" title="开发工具"></a>开发工具</h3><p>Clion + Rust插件</p>
+<h3 id="开发工具"><a href="#开发工具" class="headerlink" title="开发工具"></a>开发工具</h3><ol>
+<li>Clion + Rust插件</li>
+<li>目前Jetbrains适配了单独的RustRover，但为beta版本，可能存在bug。</li>
+</ol>
 
                 
             </div>

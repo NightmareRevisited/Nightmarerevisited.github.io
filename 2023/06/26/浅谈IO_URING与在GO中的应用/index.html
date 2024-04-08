@@ -364,7 +364,7 @@ ssize_t write(int fd, const void *buf, size_t count);</code></pre>
 <li>提交队列： SQ</li>
 <li>完成队列： CQ</li>
 </ul>
-<p><img src="/.%5Cimage%5Cio_uring.png" alt="img"></p>
+<p><img src="/image/io_uring.png" alt="img"></p>
 <p>这两个队列都是单生产者单消费者，size是2的幂，对外暴露无锁接口，内部使用内存壁垒做同步。</p>
 <h3 id="3-使用方式"><a href="#3-使用方式" class="headerlink" title="3. 使用方式"></a>3. 使用方式</h3><h4 id="IO请求"><a href="#IO请求" class="headerlink" title="IO请求"></a>IO请求</h4><ol>
 <li>应用创建SQ entries，更新SQ末端。</li>
