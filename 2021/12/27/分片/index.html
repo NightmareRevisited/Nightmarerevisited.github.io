@@ -363,10 +363,10 @@ MongoDB中的副本集是一组维护相">
 </blockquote>
 <h4 id=""><a href="#" class="headerlink" title=""></a></h4><h3 id="Hashed-Sharding"><a href="#Hashed-Sharding" class="headerlink" title="Hashed Sharding"></a>Hashed Sharding</h3><p>哈希分片以减少<a target="_blank" rel="noopener" href="https://docs.mongodb.com/v4.2/core/sharded-cluster-query-router/#sharding-query-isolation">定向操作和增加广播操作</a>作为代价，分片集群内的数据分布更加均衡。在哈希之后，拥有比较“接近”的片键的文档将不太可能会分布在相同的数据库或者分片上。mongos更有可能执行广播操作来完成一个给定的范围查询。相对的，mongos可以将等值匹配的查询直接定位到单个分片上。</p>
 <p>给定一个使用单调递增的值<code>X</code>作为片键的集合，使用范围分片会导致插入数据的分布类似于下面这样：</p>
-<p>![1712374695936](C:\Users\41704\Documents\WeChat Files\wxid_b7yv0lq6dk5w12\FileStorage\Temp\1712374695936.jpg)</p>
+<p><img src="/.%5Cimage%5C1712374695936.jpg" alt="1712374695936"></p>
 <p>由于<code>X</code>的值始终在增加，因此具有<code>maxKey</code>(上限)的数据块将接收大多数传入的写操作。 这将插入操作限制在只能定向到包含此块的单个分片，从而减少或消除了分片集群中分布式写入的优势。</p>
 <p>通过在<code>X</code>上使用哈希索引，插入的分布将类似于下面这样：</p>
-<p>![1712374663540(1)](C:\Users\41704\Documents\WeChat Files\wxid_b7yv0lq6dk5w12\FileStorage\Temp\1712374663540(1).jpg)</p>
+<p><img src="/.%5Cimage%5C1712374663540(1).jpg" alt="1712374663540(1)"></p>
 <p>由于现在数据分布更加均匀，因此可以在整个集群中更高效地读写。</p>
 <h4 id="相较于范围分片"><a href="#相较于范围分片" class="headerlink" title="相较于范围分片"></a>相较于范围分片</h4><h5 id="优势："><a href="#优势：" class="headerlink" title="优势："></a>优势：</h5><ol>
 <li>均摊压力</li>
