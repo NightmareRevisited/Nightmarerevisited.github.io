@@ -4,6 +4,25 @@
   
     
     <entry>
+      <title>闭包参数的作用</title>
+      <link href="/2024/07/07/%E9%97%AD%E5%8C%85%E5%8F%82%E6%95%B0%E7%9A%84%E4%BD%9C%E7%94%A8/"/>
+      <url>/2024/07/07/%E9%97%AD%E5%8C%85%E5%8F%82%E6%95%B0%E7%9A%84%E4%BD%9C%E7%94%A8/</url>
+      
+        <content type="html"><![CDATA[<h1 id="闭包参数的作用"><a href="#闭包参数的作用" class="headerlink" title="闭包参数的作用"></a>闭包参数的作用</h1><blockquote><p>关于内存逃逸相关前置知识，请参考 <a href="https://geektutu.com/post/hpg-escape-analysis.html">Golang逃逸分析</a></p></blockquote><p>前几天面试时被问到了一个简单的问题： <code>在Golang中闭包直接使用父作用域的变量和通过参数传递的方式有什么区别</code>,我觉得本意可能是在考察作用域内变量的读写操作，不太确定地额外回答了内存逃逸相关的Point。本着纸上得来终觉浅的精神，做一下逃逸分析印证我的想法。</p><h2 id="变量作用域"><a href="#变量作用域" class="headerlink" title="变量作用域"></a>变量作用域</h2><ol><li><p>闭包直接读取父作用域变量：无论变量是否是指针还是具体对象，父子作用域间的修改都会互相可见。</p></li><li><p>参数传递：当变量不为指针或胖指针时，父子作用域间的修改互不可见；反之，修改互相可见。</p></li></ol><h2 id="内存逃逸"><a href="#内存逃逸" class="headerlink" title="内存逃逸"></a>内存逃逸</h2><p>写两个简单的例子</p><ol><li>参数传递</li></ol><pre class="language-go" data-language="go"><code class="language-go">func test() &#123;var n intf :&#x3D; func(n int) &#123;n +&#x3D; 1&#125;go f(n)n +&#x3D; 1&#125;func main() &#123;test()&#125;</code></pre><p>执行逃逸分析</p><pre class="language-bash" data-language="bash"><code class="language-bash">~ go build -gcflags&#x3D;-m cmd\escape_ana\main.go# command-line-argumentscmd\escape_ana&#x2F;main.go:6:7: can inline test.func1cmd\escape_ana&#x2F;main.go:10:2: can inline test.gowrap1cmd\escape_ana&#x2F;main.go:10:6: inlining call to test.func1cmd\escape_ana&#x2F;main.go:15:6: can inline maincmd\escape_ana&#x2F;main.go:6:7: func literal escapes to heap</code></pre><ol start="2"><li>直接读取</li></ol><pre class="language-go" data-language="go"><code class="language-go">func test() &#123;var n intf :&#x3D; func() &#123;n +&#x3D; 1&#125;go f()n +&#x3D; 1&#125;func main() &#123;test()&#125;</code></pre><p>执行逃逸分析</p><pre class="language-bash" data-language="bash"><code class="language-bash">~ go build -gcflags&#x3D;-m cmd\escape_ana\main.go# command-line-argumentscmd\escape_ana&#x2F;main.go:6:7: can inline test.func1cmd\escape_ana&#x2F;main.go:15:6: can inline maincmd\escape_ana&#x2F;main.go:4:6: moved to heap: ncmd\escape_ana&#x2F;main.go:6:7: func literal escapes to heap</code></pre><p>对比之下，确定在闭包中以参数传递的形式获取父作用域的变量，可以避免发生内存逃逸，i减少gc开销。</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> golang </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>镇江小记</title>
       <link href="/2024/04/14/%E9%95%87%E6%B1%9F%E5%B0%8F%E8%AE%B0/"/>
       <url>/2024/04/14/%E9%95%87%E6%B1%9F%E5%B0%8F%E8%AE%B0/</url>
