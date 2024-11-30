@@ -385,21 +385,9 @@
                             <div class="summary block-with-text">
                                 
                                     Uwsgi坑点之优雅退出
-
-
-Author
-Date
-Version
-
-
-
-Nightmarerevisited
-2024-11-18
-1.0.0
-
-
-
-背景最近发现线上k8s pod在部署新版本镜像时，即便使用了官方推荐的master-f
+背景最近发现线上k8s pod在部署新版本镜像时，即便使用了官方推荐的master-fifo方式进行优雅退出，也还是会有大量的nginx502日志，且502日志数量远大于uwsgi进程数。
+排查
+初步怀疑是uwsg
                                 
                             </div>
                             <div class="publish-info">

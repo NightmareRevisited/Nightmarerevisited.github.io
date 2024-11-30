@@ -447,21 +447,9 @@
                         <div class="summary block-with-text">
                             
                                 Uwsgi坑点之优雅退出
-
-
-Author
-Date
-Version
-
-
-
-Nightmarerevisited
-2024-11-18
-1.0.0
-
-
-
-背景最近发现线上k8s pod在部署新版本镜像时，即便使用了官方推荐的master-f
+背景最近发现线上k8s pod在部署新版本镜像时，即便使用了官方推荐的master-fifo方式进行优雅退出，也还是会有大量的nginx502日志，且502日志数量远大于uwsgi进程数。
+排查
+初步怀疑是uwsg
                             
                         </div>
                         <div class="publish-info">
@@ -606,21 +594,9 @@ Nightmarerevisited
                     <div class="card-content article-content">
                         <div class="summary block-with-text">
                             
-                                浅谈IO_URING与在GO中的应用
+                                浅谈IO_URING与在GO中的应用io_uring 是 2019 年 Linux 5.1 内核首次引入的高性能 异步 I&#x2F;O 框架，能显著加速 I&#x2F;O 密集型应用的性能。
 
-
-Author
-Date
-Version
-
-
-
-NightmareRevisited
-2023年06月26日
-1.0.0
-
-
-io_uring 是 2019 年 Linux 5.1 内核首次引入的高性
+LINUX IO演变1. 基于fd的阻塞式I
                             
                         </div>
                         <div class="publish-info">
@@ -667,16 +643,9 @@ io_uring 是 2019 年 Linux 5.1 内核首次引入的高性
                             
                                 LINK_DIRECTORIES | LINK_LIBRARIES | TARGET_LINK_LIBRARIES区别
 
+学习io_uring时在cmake编译过程踩了很多坑，专门记录一下
 
-Author
-Date
-Version
-
-
-
-NightmareRevisited
-2023年05月29日
-1.0.
+LINK_DIRECTORIES | LINK_
                             
                         </div>
                         <div class="publish-info">
@@ -722,21 +691,7 @@ NightmareRevisited
                         <div class="summary block-with-text">
                             
                                 PHP模块迁GO前端页面方案
-
-
-Author
-Date
-Version
-
-
-
-NightmareRevisited
-2023年3月11日
-1.0.0
-
-
-
-背景业务的同步数据页面（PC端、SEO）使用php的smarty模板框架进行数据注
+背景业务的同步数据页面（PC端、SEO）使用php的smarty模板框架进行数据注入，但是在go中并没有任何现成模板框架支持php的samrty，所以迁go后如何基于php模块现有模板实现同步页面是一个关键问题
                             
                         </div>
                         <div class="publish-info">

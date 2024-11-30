@@ -6,21 +6,9 @@
     <meta charset="utf-8">
     <meta name="keywords" content="Uwsgi坑点之优雅退出, Backend,BigData,Linux">
     <meta name="description" content="Uwsgi坑点之优雅退出
-
-
-Author
-Date
-Version
-
-
-
-Nightmarerevisited
-2024-11-18
-1.0.0
-
-
-
-背景最近发现线上k8s pod在部署新版本镜像时，即便使用了官方推荐的master-f">
+背景最近发现线上k8s pod在部署新版本镜像时，即便使用了官方推荐的master-fifo方式进行优雅退出，也还是会有大量的nginx502日志，且502日志数量远大于uwsgi进程数。
+排查
+初步怀疑是uwsg">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -294,21 +282,7 @@ Nightmarerevisited
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="Uwsgi坑点之优雅退出"><a href="#Uwsgi坑点之优雅退出" class="headerlink" title="Uwsgi坑点之优雅退出"></a>Uwsgi坑点之优雅退出</h1><table>
-<thead>
-<tr>
-<th>Author</th>
-<th>Date</th>
-<th>Version</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Nightmarerevisited</td>
-<td>2024-11-18</td>
-<td>1.0.0</td>
-</tr>
-</tbody></table>
-<hr>
+                <h1 id="Uwsgi坑点之优雅退出"><a href="#Uwsgi坑点之优雅退出" class="headerlink" title="Uwsgi坑点之优雅退出"></a>Uwsgi坑点之优雅退出</h1><hr>
 <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>最近发现线上k8s pod在部署新版本镜像时，即便使用了官方推荐的master-fifo方式进行优雅退出，也还是会有大量的nginx502日志，且502日志数量远大于uwsgi进程数。</p>
 <h2 id="排查"><a href="#排查" class="headerlink" title="排查"></a>排查</h2><ol>
 <li><p>初步怀疑是uwsgi优雅退出未生效，遂将线上docker image拉到本地执行测试</p>
