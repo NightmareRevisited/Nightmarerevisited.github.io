@@ -414,10 +414,10 @@ func main() &#123;
 	&#125;
 &#125;</code></pre>
 
-<p>uwsgi并没有区分reload和shutdown时的优雅退出，在gracefully kill时直接设置manage_next_request为0，含义为不在尝试接受新请求（无论是epoll还是listen queue），在处理完当前请求后直接退出；这个设计在reload时是没有问题的，避免旧worker和新worker抢夺请求导致版本不一致；但是在shutdown时就很有问题了，<strong>listen queue内的所有等待中请求全被丢弃了</strong>，从而引发nginx 502 error。</p>
+<p>uwsgi并没有区分reload和shutdown时的优雅退出，在gracefully kill时直接设置manage_next_request为0，含义为不在尝试接受新请求（ epoll listen queue），在处理完当前请求后直接退出；这个设计在reload时是没有问题的，避免旧worker和新worker抢夺请求导致版本不一致；但是在shutdown时就很有问题了，<strong>listen queue内的所有等待中请求全被丢弃了</strong>，从而引发nginx 502 error。</p>
 </li>
 </ol>
-<h2 id="修复方案"><a href="#修复方案" class="headerlink" title="修复方案"></a>修复方案</h2><h3 id="PLAN1-UWSGI-FIX"><a href="#PLAN1-UWSGI-FIX" class="headerlink" title="PLAN1 UWSGI FIX"></a>PLAN1 UWSGI FIX</h3><p>区分SIGHUP和SIGQUIT不是一个小改动，对需要快速修复的线上问题不适用。但可以在工作外抽时间改动完提issue。</p>
+<h2 id="修复方案"><a href="#修复方案" class="headerlink" title="修复方案"></a>修复方案</h2><h3 id="PLAN1-UWSGI-FIX"><a href="#PLAN1-UWSGI-FIX" class="headerlink" title="PLAN1 UWSGI FIX"></a>PLAN1 UWSGI FIX</h3><p>如果需要让uWSGI实现类似nginx的优雅推出，需要添加请求缓冲区，这可能有悖于uWSGI原本设计，并且这会是个庞大的工程，并不现实。</p>
 <h3 id="PLAN2-绕过UWSGI对NGINX进行优雅退出"><a href="#PLAN2-绕过UWSGI对NGINX进行优雅退出" class="headerlink" title="PLAN2 绕过UWSGI对NGINX进行优雅退出"></a>PLAN2 绕过UWSGI对NGINX进行优雅退出</h3><p>由于nginx和uwsgi是串行关系，所以只要nginx优雅退出成功uwsgi也会优雅退出成功，nginx在kill quit时是会老老实实等待所有请求执行完毕的，所以直接对nginx master kill quit即可。该方案上线后确认可以解决问题。</p>
 
                 
