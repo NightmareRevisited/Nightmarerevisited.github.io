@@ -4,11 +4,23 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="闭包参数的作用, Backend,BigData,Linux">
-    <meta name="description" content="闭包参数的作用
-关于内存逃逸相关前置知识，请参考 Golang逃逸分析
+    <meta name="keywords" content="Uwsgi坑点之优雅退出, Backend,BigData,Linux">
+    <meta name="description" content="Uwsgi坑点之优雅退出
 
-前几天面试时被问到了一个简单的问题： 在Golang中闭包直接使用父作用域的变量和通过参数传递的方式有什么区别,我觉得本意可能是在考察作用域内变量的读写操作，不太确定">
+
+Author
+Date
+Version
+
+
+
+Nightmarerevisited
+2024-11-18
+1.0.0
+
+
+
+背景最近发现线上k8s pod在部署新版本镜像时，即便使用了官方推荐的master-f">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -20,7 +32,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>闭包参数的作用 | NightmareRevisited</title>
+    <title>Uwsgi坑点之优雅退出 | NightmareRevisited</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
 
@@ -209,12 +221,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/2.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/17.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">闭包参数的作用</h1>
+                    <h1 class="description center-align post-title">Uwsgi坑点之优雅退出</h1>
                 </div>
             </div>
         </div>
@@ -238,8 +250,12 @@
                     
                     <div class="article-tag">
                         
-                            <a href="/tags/golang/">
-                                <span class="chip bg-color">golang</span>
+                            <a href="/tags/Python/">
+                                <span class="chip bg-color">Python</span>
+                            </a>
+                        
+                            <a href="/tags/uWSGI/">
+                                <span class="chip bg-color">uWSGI</span>
                             </a>
                         
                     </div>
@@ -254,7 +270,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2024-07-07
+                    2024-11-21
                 </div>
                 
 
@@ -278,73 +294,131 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="闭包参数的作用"><a href="#闭包参数的作用" class="headerlink" title="闭包参数的作用"></a>闭包参数的作用</h1><blockquote>
-<p>关于内存逃逸相关前置知识，请参考 <a target="_blank" rel="noopener" href="https://geektutu.com/post/hpg-escape-analysis.html">Golang逃逸分析</a></p>
+                <h1 id="Uwsgi坑点之优雅退出"><a href="#Uwsgi坑点之优雅退出" class="headerlink" title="Uwsgi坑点之优雅退出"></a>Uwsgi坑点之优雅退出</h1><table>
+<thead>
+<tr>
+<th>Author</th>
+<th>Date</th>
+<th>Version</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Nightmarerevisited</td>
+<td>2024-11-18</td>
+<td>1.0.0</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>最近发现线上k8s pod在部署新版本镜像时，即便使用了官方推荐的master-fifo方式进行优雅退出，也还是会有大量的nginx502日志，且502日志数量远大于uwsgi进程数。</p>
+<h2 id="排查"><a href="#排查" class="headerlink" title="排查"></a>排查</h2><ol>
+<li><p>初步怀疑是uwsgi优雅退出未生效，遂将线上docker image拉到本地执行测试</p>
+<p><strong>测试脚本</strong>如下：</p>
+<pre class="language-go" data-language="go"><code class="language-go">package main
+
+import (
+	&quot;bytes&quot;
+	&quot;encoding&#x2F;json&quot;
+	&quot;fmt&quot;
+	&quot;math&#x2F;rand&#x2F;v2&quot;
+	&quot;net&#x2F;http&quot;
+	&quot;os&quot;
+	&quot;sync&quot;
+	&quot;time&quot;
+)
+
+func main() &#123;
+	fmt.Println(os.Args[1])
+
+	client :&#x3D; http.Client&#123;&#125;
+
+	wg :&#x3D; sync.WaitGroup&#123;&#125;
+	wg.Add(100)
+
+	for i :&#x3D; 0; i &lt; 100; i++ &#123;
+		go func() &#123;
+			rnd :&#x3D; rand.IntN(1000)
+			b, _ :&#x3D; json.Marshal(map[string]any&#123;
+				&quot;rand&quot;: rnd,
+			&#125;)
+			requestBody :&#x3D; bytes.NewReader(b)
+			req, _ :&#x3D; http.NewRequest(http.MethodGet, fmt.Sprintf(&quot;http:&#x2F;&#x2F;%s&#x2F;&quot;, os.Args[1]), requestBody)
+			req.Header.Set(&quot;Content-Type&quot;, &quot;application&#x2F;json&quot;)
+			req.Header.Set(&quot;Cookie&quot;,
+				&quot;your-cookie&quot;,
+			)
+
+			time.Sleep(time.Duration(i) * time.Second)
+			startTime :&#x3D; time.Now().Format(time.DateTime)
+			resp, err :&#x3D; client.Do(req)
+			if err !&#x3D; nil &#123;
+				fmt.Printf(&quot;%s, No.%d Request %d, error : %s\n&quot;, startTime, i, rnd, err.Error())
+				wg.Done()
+				return
+			&#125;
+			data :&#x3D; bytes.Buffer&#123;&#125;
+			_, _ &#x3D; data.ReadFrom(resp.Body)
+			fmt.Printf(&quot;%s, No.%d Request %d ,Response : %s\n&quot;, startTime, i, rnd, data.String())
+
+			wg.Done()
+		&#125;()
+	&#125;
+
+	wg.Wait()
+&#125;
+</code></pre>
+
+<p>在本地docker中测试时无论是对supervisor进行优雅退出还是对uwsgi进行优雅退出结果都是符合预期的。</p>
+<blockquote>
+<p>但事实上这个测试脚本本身存在缺陷，一秒一条请求无法打满uwsgi进程从而触发uwsgi请求队列。</p>
 </blockquote>
-<p>前几天面试时被问到了一个简单的问题： <code>在Golang中闭包直接使用父作用域的变量和通过参数传递的方式有什么区别</code>,我觉得本意可能是在考察作用域内变量的读写操作，不太确定地额外回答了内存逃逸相关的Point。本着纸上得来终觉浅的精神，做一下逃逸分析印证我的想法。</p>
-<h2 id="变量作用域"><a href="#变量作用域" class="headerlink" title="变量作用域"></a>变量作用域</h2><ol>
-<li><p>闭包直接读取父作用域变量：无论变量是否是指针还是具体对象，父子作用域间的修改都会互相可见。</p>
 </li>
-<li><p>参数传递：当变量不为指针或胖指针时，父子作用域间的修改互不可见；反之，修改互相可见。</p>
+<li><p>遂怀疑是uwsgi版本&#x2F;配置问题导致了线下线上环境表现不一致，查看官方文档后确认版本存在master-fifo feature且gracefully shutdown相关配置正确。</p>
 </li>
-</ol>
-<h2 id="内存逃逸"><a href="#内存逃逸" class="headerlink" title="内存逃逸"></a>内存逃逸</h2><p>写两个简单的例子</p>
-<ol>
-<li>参数传递</li>
-</ol>
-<pre class="language-go" data-language="go"><code class="language-go">func test() &#123;
-	var n int
+<li><p>排查uwsgi日志时发现存在gracefully shutdown相关日志。</p>
+</li>
+<li><p>排查线上nginx error日志时发现，502请求均为upstream prematurely closed connection while reading response header from upstream,即nginx在等待uwsgi返回请求时意外中断。</p>
+<p>且线上nginx 502条数远大于uwsgi worker进程数，此时联想到uwsgi存在请求等待队列，开始怀疑是uwsgi本身的缺陷引发的问题。</p>
+</li>
+<li><p>线下docker测试配置改为如下，uwsgi worker: 20,nginx worker: 30, 并发请求数100。</p>
+<p>请求后对uwsgi发起优雅退出请求，复现出线上问题，只有20个请求优雅退出成功，位于uwsgi listen queue的80个请求都失败了。此时已经推测出问题出在什么地方，但还是需要uwsgi源码确认。</p>
+</li>
+<li><p>排查uwsg源码，在worker进程优雅退出部分发现了端倪。</p>
+<pre class="language-c" data-language="c"><code class="language-c">void gracefully_kill(int signum) &#123;
 
-	f :&#x3D; func(n int) &#123;
-		n +&#x3D; 1
+	uwsgi_log(&quot;Gracefully killing worker %d (pid: %d)...\n&quot;, uwsgi.mywid, uwsgi.mypid);
+	uwsgi.workers[uwsgi.mywid].manage_next_request &#x3D; 0;    &#x2F;&#x2F;这里会导致worker不再从队列中取出等待中请求
+
+	if (uwsgi.threads &gt; 1) &#123;
+		&#x2F;&#x2F; Stop event_queue_wait() in other threads.
+		&#x2F;&#x2F; We use loop_stop_pipe only in threaded workers to avoid
+		&#x2F;&#x2F; unintensional behavior changes in single threaded workers.
+		int fd;
+		if ((fd &#x3D; uwsgi.loop_stop_pipe[1]) &gt; 0) &#123;
+			close(fd);
+			uwsgi.loop_stop_pipe[1] &#x3D; 0;
+		&#125;
+		return;
 	&#125;
 
-	go f(n)
-
-	n +&#x3D; 1
-&#125;
-
-func main() &#123;
-	test()
-&#125;</code></pre>
-
-<p>执行逃逸分析</p>
-<pre class="language-bash" data-language="bash"><code class="language-bash">~ go build -gcflags&#x3D;-m cmd\escape_ana\main.go
-# command-line-arguments
-cmd\escape_ana&#x2F;main.go:6:7: can inline test.func1
-cmd\escape_ana&#x2F;main.go:10:2: can inline test.gowrap1
-cmd\escape_ana&#x2F;main.go:10:6: inlining call to test.func1
-cmd\escape_ana&#x2F;main.go:15:6: can inline main
-cmd\escape_ana&#x2F;main.go:6:7: func literal escapes to heap</code></pre>
-
-<ol start="2">
-<li>直接读取</li>
-</ol>
-<pre class="language-go" data-language="go"><code class="language-go">func test() &#123;
-	var n int
-
-	f :&#x3D; func() &#123;
-		n +&#x3D; 1
+	&#x2F;&#x2F; still not found a way to gracefully reload in async mode
+	if (uwsgi.async &gt; 0) &#123;
+		if (uwsgi.workers[uwsgi.mywid].shutdown_sockets)
+			uwsgi_shutdown_all_sockets();
+		exit(UWSGI_RELOAD_CODE);
 	&#125;
 
-	go f()
-
-	n +&#x3D; 1
-&#125;
-
-func main() &#123;
-	test()
+	if (!uwsgi.workers[uwsgi.mywid].cores[0].in_request) &#123;
+		if (uwsgi.workers[uwsgi.mywid].shutdown_sockets)
+			uwsgi_shutdown_all_sockets();
+		exit(UWSGI_RELOAD_CODE);
+	&#125;
 &#125;</code></pre>
 
-<p>执行逃逸分析</p>
-<pre class="language-bash" data-language="bash"><code class="language-bash">~ go build -gcflags&#x3D;-m cmd\escape_ana\main.go
-# command-line-arguments
-cmd\escape_ana&#x2F;main.go:6:7: can inline test.func1
-cmd\escape_ana&#x2F;main.go:15:6: can inline main
-cmd\escape_ana&#x2F;main.go:4:6: moved to heap: n
-cmd\escape_ana&#x2F;main.go:6:7: func literal escapes to heap</code></pre>
-
-<p>对比之下，确定在闭包中以参数传递的形式获取父作用域的变量，可以避免发生内存逃逸，减少gc开销。</p>
+<p>uwsgi并没有区分reload和shutdown时的优雅退出，在gracefully kill时直接设置manage_next_request为0，含义为不在尝试接受新请求（无论是epoll还是listen queue），在处理完当前请求后直接退出；这个设计在reload时是没有问题的，避免旧worker和新worker抢夺请求导致版本不一致；但是在shutdown时就很有问题了，<strong>listen queue内的所有等待中请求全被丢弃了</strong>，从而引发nginx 502 error。</p>
+</li>
+</ol>
+<h2 id="修复方案"><a href="#修复方案" class="headerlink" title="修复方案"></a>修复方案</h2><h3 id="PLAN1-UWSGI-FIX"><a href="#PLAN1-UWSGI-FIX" class="headerlink" title="PLAN1 UWSGI FIX"></a>PLAN1 UWSGI FIX</h3><p>区分SIGHUP和SIGQUIT不是一个小改动，对需要快速修复的线上问题不适用。但可以在工作外抽时间改动完提issue。</p>
+<h3 id="PLAN2-绕过UWSGI对NGINX进行优雅退出"><a href="#PLAN2-绕过UWSGI对NGINX进行优雅退出" class="headerlink" title="PLAN2 绕过UWSGI对NGINX进行优雅退出"></a>PLAN2 绕过UWSGI对NGINX进行优雅退出</h3><p>由于nginx和uwsgi是串行关系，所以只要nginx优雅退出成功uwsgi也会优雅退出成功，nginx在kill quit时是会老老实实等待所有请求执行完毕的，所以直接对nginx master kill quit即可。该方案上线后确认可以解决问题。</p>
 
                 
             </div>
@@ -371,7 +445,7 @@ cmd\escape_ana&#x2F;main.go:6:7: func literal escapes to heap</code></pre>
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="https://nightmarerevisited.github.io/2024/07/07/%E9%97%AD%E5%8C%85%E5%8F%82%E6%95%B0%E7%9A%84%E4%BD%9C%E7%94%A8/">https://nightmarerevisited.github.io/2024/07/07/%E9%97%AD%E5%8C%85%E5%8F%82%E6%95%B0%E7%9A%84%E4%BD%9C%E7%94%A8/</a>
+                    <a href="https://nightmarerevisited.github.io/2024/11/21/Uwsgi%E5%9D%91%E7%82%B9%E4%B9%8B%E4%BC%98%E9%9B%85%E9%80%80%E5%87%BA/">https://nightmarerevisited.github.io/2024/11/21/Uwsgi%E5%9D%91%E7%82%B9%E4%B9%8B%E4%BC%98%E9%9B%85%E9%80%80%E5%87%BA/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -409,8 +483,12 @@ cmd\escape_ana&#x2F;main.go:6:7: func literal escapes to heap</code></pre>
                     
                         <div class="article-tag">
                             
-                                <a href="/tags/golang/">
-                                    <span class="chip bg-color">golang</span>
+                                <a href="/tags/Python/">
+                                    <span class="chip bg-color">Python</span>
+                                </a>
+                            
+                                <a href="/tags/uWSGI/">
+                                    <span class="chip bg-color">uWSGI</span>
                                 </a>
                             
                         </div>
@@ -489,9 +567,10 @@ cmd\escape_ana&#x2F;main.go:6:7: func literal escapes to heap</code></pre>
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
                 <a href="/2024/11/21/Uwsgi%E5%9D%91%E7%82%B9%E4%B9%8B%E4%BC%98%E9%9B%85%E9%80%80%E5%87%BA/">
                     <div class="card-image">
@@ -509,9 +588,9 @@ cmd\escape_ana&#x2F;main.go:6:7: func literal escapes to heap</code></pre>
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2024-11-21
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2024-11-21
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-user fa-fw"></i>
@@ -520,6 +599,7 @@ cmd\escape_ana&#x2F;main.go:6:7: func literal escapes to heap</code></pre>
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
@@ -542,12 +622,13 @@ cmd\escape_ana&#x2F;main.go:6:7: func literal escapes to heap</code></pre>
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2024/04/14/%E9%95%87%E6%B1%9F%E5%B0%8F%E8%AE%B0/">
+                <a href="/2024/07/07/%E9%97%AD%E5%8C%85%E5%8F%82%E6%95%B0%E7%9A%84%E4%BD%9C%E7%94%A8/">
                     <div class="card-image">
                         
-                        <img src="/image/trip/%E9%B2%A5%E9%B1%BC.jpg" class="responsive-img" alt="镇江小记">
                         
-                        <span class="card-title">镇江小记</span>
+                        <img src="/medias/featureimages/2.jpg" class="responsive-img" alt="闭包参数的作用">
+                        
+                        <span class="card-title">闭包参数的作用</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -558,7 +639,7 @@ cmd\escape_ana&#x2F;main.go:6:7: func literal escapes to heap</code></pre>
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2024-04-14
+                                <i class="far fa-clock fa-fw icon-date"></i>2024-07-07
                             </span>
                         <span class="publish-author">
                             
@@ -571,12 +652,8 @@ cmd\escape_ana&#x2F;main.go:6:7: func literal escapes to heap</code></pre>
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/%E6%97%85%E8%A1%8C/">
-                        <span class="chip bg-color">旅行</span>
-                    </a>
-                    
-                    <a href="/tags/%E5%90%83%E5%96%9D/">
-                        <span class="chip bg-color">吃喝</span>
+                    <a href="/tags/golang/">
+                        <span class="chip bg-color">golang</span>
                     </a>
                     
                 </div>
